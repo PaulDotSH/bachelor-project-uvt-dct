@@ -1,0 +1,119 @@
+use crate::endpoints::common::generate_token;
+use crate::error::AppError;
+use crate::AppState;
+use anyhow::anyhow;
+use argon2::{Argon2, PasswordHash, PasswordVerifier};
+use axum::body::Body;
+use axum::extract::State;
+use axum::http::{header, HeaderMap, HeaderValue, Request, StatusCode};
+use axum::middleware::Next;
+use axum::response::{Html, IntoResponse, Response};
+use axum::Form;
+use chrono::Utc;
+use serde::{Deserialize, Serialize};
+use sqlx::query_scalar;
+use crate::constants::*;
+
+pub async fn login_fe() -> Html<&'static str> {
+    Html::from(LOGIN_HTML)
+}
+
+#[derive(sqlx::FromRow, Debug)]
+struct User {
+    username: String,
+    tok_expire: chrono::NaiveDateTime,
+}
+
+pub async fn auth_middleware<B>(
+    State(state): State<AppState>,
+    mut request: Request<Body>, // insert the username and role headers in the following requests in case they are needed so we don't hit the database again
+    next: Next,                 // So we can forward the request
+) -> Response {
+    println!("{:?}", request);
+    let headers = request.headers_mut();
+
+    let Some(cookie) = headers.get("cookie").cloned() else {
+        return StatusCode::UNAUTHORIZED.into_response();
+    };
+
+    let Ok(cookie_str) = cookie.to_str() else {
+        return StatusCode::UNAUTHORIZED.into_response();
+    };
+
+    let cookie_pairs: Vec<&str> = cookie_str.split(';').collect();
+
+    for pair in cookie_pairs {
+        if let Some(token) = pair.trim().strip_prefix("TOKEN=") {
+            let Ok(user) = sqlx::query_as!(
+                User,
+                "SELECT username, tok_expire FROM users WHERE token = $1",
+                token
+            )
+            .fetch_one(&state.postgres)
+            .await
+            else {
+                return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid token").into_response();
+            };
+
+            if user.tok_expire < Utc::now().naive_utc() {
+                return StatusCode::UNAUTHORIZED.into_response();
+            }
+
+            headers.insert("id", HeaderValue::from_str(&user.username).unwrap());
+        }
+    }
+
+    next.run(request).await
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Login {
+    username: String,
+    password: String,
+}
+
+pub async fn login_handler(
+    State(state): State<AppState>,
+    Form(payload): Form<Login>,
+) -> Result<Response, AppError> {
+    let Ok(pw): Result<String, _> = query_scalar!(
+        r#"
+        SELECT pass from users where username = $1
+        "#,
+        payload.username,
+    )
+    .fetch_one(&state.postgres)
+    .await
+    else {
+        return Err(AppError(anyhow!(INVALID_USER_PW)));
+    };
+
+    let Ok(parsed_hash) = PasswordHash::new(&pw) else {
+        return Err(AppError(anyhow!("Db malformed for user")));
+    };
+
+    if Argon2::default()
+        .verify_password(payload.password.as_bytes(), &parsed_hash)
+        .is_err()
+    {
+        return Err(AppError(anyhow!(INVALID_USER_PW)));
+    }
+
+    let token = generate_token(TOKEN_LENGTH);
+
+    sqlx::query!(
+        "UPDATE users SET token = $1, tok_expire = $2 WHERE username = $3",
+        token,
+        (Utc::now() + TOKEN_EXPIRE_TIME).naive_utc(),
+        payload.username
+    )
+    .execute(&state.postgres)
+    .await?;
+
+    let cookie = format!("TOKEN={}; Path=/; Max-Age=604800", &token);
+
+    let mut headers = HeaderMap::new();
+    headers.insert(header::SET_COOKIE, cookie.parse().unwrap());
+
+    Ok(headers.into_response())
+}

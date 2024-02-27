@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include!("header.stpl"); %>
+</head>
+<body>
+        <div>Name: <%= class.name %></div>
+        <div>Description: <%= class.descr %></div>
+        <div>Faculty ID: <%- class.faculty %></div>
+        <div>Semester: <%- class.semester | dbg %></div>
+        <% if class.requirements.is_some() { %>
+            <div>Requirements: <%= class.requirements.unwrap() %></div>
+        <% } %>
+        <div>Prof: <%- class.prof %></div>
+
+
+            <form action="/classes/<%- class.id %>/delete" method="POST">
+                <input type="submit" value="Delete" />
+            </form>
+            <form action="/classes/<%- class.id %>/edit" method="GET">
+                <input type="submit" value="Edit" />
+            </form>
+            <br>
+</body>
+</html>

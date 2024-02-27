@@ -1,0 +1,37 @@
+[package]
+name = "dct"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.80"
+argon2 = "0.5.3"
+async-trait = "0.1.77"
+axum = "0.7.4"
+axum-macros = "0.4.1"
+chrono = { version = "0.4.34", features = ["serde"] }
+dotenvy = "0.15.7"
+lazy_static = "1.4.0"
+rand = "0.8.5"
+sailfish = "0.8.3"
+serde = { version = "1.0.197", features = ["derive"] }
+sqlx = { version = "0.7.3", features = ["sqlx-postgres", "runtime-tokio", "uuid", "time", "postgres", "chrono"] }
+tokio = { version = "1.36.0", features = ["full"] }
+tower-http = { version = "0.5.2", features = ["uuid", "tokio", "fs"] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+uuid = { version = "1.7.0", features = ["v4", "v7", "serde", "zerocopy"] }
+validator = { version = "0.16.1", features = ["derive"] }
+
+[profile.release]
+strip = true
+
+[profile.production]
+inherits = "release"
+lto = true
+opt-level = 3
+codegen-units = 2
+strip = true
+overflow-checks = false

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include!("header.stpl"); %>
+</head>
+<body>
+    <form action="/faculty/<%- faculty.id %>/edit" method="POST">
+        <input type="text" id="name" name="name" value="<%= faculty.name %>"></div>
+        <input type="submit" value="Modify" />
+    </form>
+</body>
+</html>
