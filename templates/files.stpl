@@ -1,0 +1,7 @@
+<label>Files:</label>
+<% for file in files { %>
+    <div><a href="/assets/classes/<%= file.name %>"><%= file.name %></a></div>
+    <form action="/files/<%- file.id %>/delete" method="POST">
+        <input type="submit" value="Delete file" />
+    </form>
+<% } %>

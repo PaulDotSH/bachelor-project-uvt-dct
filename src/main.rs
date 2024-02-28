@@ -12,6 +12,7 @@ use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 use std::env;
 use std::error::Error;
+use axum::extract::{DefaultBodyLimit, Request};
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 use crate::constants::BAD_DOT_ENV;
@@ -75,6 +76,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/check_auth", get(authed_sample_response_handler))
         .layer(middleware::from_fn_with_state(state.clone(), endpoints::auth::auth_middleware::<axum::body::Body>));
 
+    let uploader = Router::new()
+        .route("/classes/:id/upload", post(endpoints::classes::upload))
+        .layer(DefaultBodyLimit::max(12 * 1024* 1024)); //12MB
+
     // For endpoints that have differences when the user is authed or the user isn't authed
     let auth_differences = Router::new()
         .route("/classes/:id", get(endpoints::classes::view_class_fe))
@@ -91,6 +96,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .nest("/", auth)
         .nest("/", auth_differences)
         .nest("/", no_auth)
+        .nest("/", uploader)
         .with_state(state)
         .nest_service("/assets", ServeDir::new("assets"));
 

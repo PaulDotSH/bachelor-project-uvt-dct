@@ -9,7 +9,7 @@ edition = "2021"
 anyhow = "1.0.80"
 argon2 = "0.5.3"
 async-trait = "0.1.77"
-axum = "0.7.4"
+axum = { version = "0.7.4", features = ["multipart", "macros"] }
 axum-macros = "0.4.1"
 chrono = { version = "0.4.34", features = ["serde"] }
 dotenvy = "0.15.7"

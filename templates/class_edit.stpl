@@ -27,8 +27,15 @@
         <input type="text" id="requirements" name="requirements" placeholder="Requirements*" value="<%= class.requirements.unwrap_or("".to_owned()) %>"></div>
         <input type="text" id="prof" name="prof" placeholder="Professor" value="<%= class.prof %>" required></div>
 
-
         <input type="submit" value="Edit"/>
     </form>
+
+    <form action="/classes/<%- class.id %>/upload" method="post" enctype="multipart/form-data">
+        <label for="fileUpload">Select files to upload:</label>
+        <input type="file" name="files[]" multiple>
+        <input type="submit" value="Upload Files">
+    </form>
+
+    <% include!("files.stpl"); %>
 </body>
 </html>

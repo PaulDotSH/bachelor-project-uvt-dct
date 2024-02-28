@@ -2,8 +2,8 @@
 - [x] Admin auth
 - [x] CRUD faculties
 - [x] CRUD classes
+- [x] CRUD classes files
 - [ ] Classes filter
-- [ ] CRUD classes files
 - [ ] Add temporary student checking
 - [ ] Users CRUD, check using the old_choices that the user didn't already choose this class already
 - [ ] Let admins export to csv, move choices to old_choices 

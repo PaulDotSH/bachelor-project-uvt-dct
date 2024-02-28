@@ -1,9 +1,11 @@
-use axum::extract::{Path, State};
+use std::intrinsics::write_bytes;
+use axum::extract::{Multipart, Path, State};
 use axum::http::HeaderMap;
 use axum::response::{Html, Redirect};
 use sailfish::TemplateOnce;
 use serde::Deserialize;
 use sqlx::{query, query_as, query_scalar};
+use tokio::fs::File;
 use validator::Validate;
 use crate::AppState;
 use crate::endpoints::common::*;
@@ -72,6 +74,7 @@ pub async fn create_class(
 #[template(path = "class_view.stpl")]
 struct ViewClassTemplate {
     class: Class,
+    files: Vec<ClassFile>,
     is_admin: bool
 }
 
@@ -83,6 +86,16 @@ pub async fn view_class_fe(State(state): State<AppState>, headers: HeaderMap, Pa
         id
     )
         .fetch_one(&state.postgres)
+        .await?;
+
+    let files = query_as!(
+        ClassFile,
+        r#"
+        SELECT id, name FROM classes_files WHERE classes_id = $1;
+        "#,
+        id
+    )
+        .fetch_all(&state.postgres)
         .await?;
 
     let is_admin = is_admin_from_headers(&headers);
@@ -101,11 +114,40 @@ pub async fn view_class_fe(State(state): State<AppState>, headers: HeaderMap, Pa
             requirements: record.requirements,
             prof: record.prof,
         },
-        is_admin
+        is_admin,
+        files
     };
 
     let body = ctx.render_once().map_err(|e| AppError(e.into()))?;
     Ok(Html::from(body))
+}
+
+use tokio::io::AsyncWriteExt;
+pub async fn upload(State(state): State<AppState>, headers: HeaderMap, Path(id): Path<i32>, mut multipart: Multipart)
+    -> Result<Redirect, AppError> {
+    println!("id in upload {}", id);
+    while let Some(field) = multipart.next_field().await.unwrap() {
+        let file_name = field.file_name().unwrap().to_string();
+        let file_path = format!("./assets/classes/{}", file_name);
+        let mut file = File::create(&file_path).await?;
+
+        let data = field.bytes().await.unwrap();
+        file.write_all(&data).await?;
+
+        //TODO: insert into db
+        if query!(
+        r#"
+        INSERT INTO classes_files(name, classes_id) VALUES ($1, $2);
+        "#,
+        file_name, id
+        )
+            .execute(&state.postgres)
+            .await.is_err() {
+                tokio::fs::remove_file(&file_path).await?;
+            };
+
+    }
+    Ok(Redirect::to(format!("/classes/{}/edit", id).as_str()))
 }
 
 pub async fn delete_class(
@@ -167,21 +209,37 @@ pub async fn update_class(
 #[template(path = "class_edit.stpl")]
 struct EditClassTemplate {
     class: Class,
-    faculties: Vec<Faculty>
+    faculties: Vec<Faculty>,
+    files: Vec<ClassFile>
 }
 
-///
+pub struct ClassFile {
+    name: String,
+    id: i32
+}
+
 pub async fn update_class_fe(
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> Result<Html<String>, AppError> {
-    let record = query!(
+
+    let class_record = query!(
         r#"
         SELECT id, name, descr, faculty, semester::text, requirements, prof FROM classes WHERE id = $1;
         "#,
         id
     )
         .fetch_one(&state.postgres)
+        .await?;
+
+    let files = query_as!(
+        ClassFile,
+        r#"
+        SELECT id, name FROM classes_files WHERE classes_id = $1;
+        "#,
+        id
+    )
+        .fetch_all(&state.postgres)
         .await?;
 
     let faculties = query_as!(
@@ -197,18 +255,19 @@ pub async fn update_class_fe(
     let ctx = EditClassTemplate {
         class: Class {
             id,
-            name: record.name,
-            descr: record.descr,
-            faculty: record.faculty, //TODO: Add faculty name...
-            semester: match record.semester.unwrap().as_ref() {
+            name: class_record.name,
+            descr: class_record.descr,
+            faculty: class_record.faculty, //TODO: Add faculty name...
+            semester: match class_record.semester.unwrap().as_ref() {
                 "First" => Semester::First,
                 "Second" => Semester::Second,
                 _ => panic!("Unexpected semester value"),
             },
-            requirements: record.requirements,
-            prof: record.prof,
+            requirements: class_record.requirements,
+            prof: class_record.prof,
         },
-        faculties
+        faculties,
+        files
     };
 
     let body = ctx.render_once().map_err(|e| AppError(e.into()))?;
