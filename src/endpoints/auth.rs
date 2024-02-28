@@ -24,12 +24,52 @@ struct User {
     tok_expire: chrono::NaiveDateTime,
 }
 
+pub async fn permissive_middleware<B>(
+    State(state): State<AppState>,
+    mut request: Request<Body>, // insert the username and role headers in the following requests in case they are needed so we don't hit the database again
+    next: Next,                 // So we can forward the request
+) -> Response {
+    let headers = request.headers_mut();
+
+    let Some(cookie) = headers.get("cookie").cloned() else {
+        return next.run(request).await;
+    };
+
+    let Ok(cookie_str) = cookie.to_str() else {
+        return next.run(request).await;
+    };
+
+    let cookie_pairs: Vec<&str> = cookie_str.split(';').collect();
+
+    for pair in cookie_pairs {
+        if let Some(token) = pair.trim().strip_prefix("TOKEN=") {
+            let Ok(user) = sqlx::query_as!(
+                User,
+                "SELECT username, tok_expire FROM users WHERE token = $1",
+                token
+            )
+                .fetch_one(&state.postgres)
+                .await
+                else {
+                    return next.run(request).await;
+                };
+
+            if user.tok_expire < Utc::now().naive_utc() {
+                return next.run(request).await;
+            }
+
+            headers.insert("id", HeaderValue::from_str(&user.username).unwrap());
+        }
+    }
+
+    next.run(request).await
+}
+
 pub async fn auth_middleware<B>(
     State(state): State<AppState>,
     mut request: Request<Body>, // insert the username and role headers in the following requests in case they are needed so we don't hit the database again
     next: Next,                 // So we can forward the request
 ) -> Response {
-    println!("{:?}", request);
     let headers = request.headers_mut();
 
     let Some(cookie) = headers.get("cookie").cloned() else {

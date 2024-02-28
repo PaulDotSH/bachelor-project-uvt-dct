@@ -1,11 +1,12 @@
 use axum::extract::{Path, State};
+use axum::http::HeaderMap;
 use axum::response::{Html, Redirect};
 use sailfish::TemplateOnce;
 use serde::Deserialize;
 use sqlx::{query, query_as, query_scalar};
 use validator::Validate;
 use crate::AppState;
-use crate::endpoints::common::{Class, Faculty, Semester, ValidatedForm};
+use crate::endpoints::common::{Class, Faculty, get_username_from_header, is_admin_from_headers, Semester, ValidatedForm};
 use crate::error::AppError;
 
 #[derive(Deserialize, Validate)]
@@ -69,10 +70,11 @@ pub async fn create_class(
 #[derive(TemplateOnce)]
 #[template(path = "class_view.stpl")]
 struct ViewClassTemplate {
-    class: Class
+    class: Class,
+    is_admin: bool
 }
 
-pub async fn view_class_fe(State(state): State<AppState>, Path(id): Path<i32>) -> Result<Html<String>, AppError> {
+pub async fn view_class_fe(State(state): State<AppState>, headers: HeaderMap, Path(id): Path<i32>) -> Result<Html<String>, AppError> {
     let record = query!(
         r#"
         SELECT id, name, descr, faculty, semester::text, requirements, prof FROM classes WHERE id = $1 AND disabled = false;
@@ -82,6 +84,8 @@ pub async fn view_class_fe(State(state): State<AppState>, Path(id): Path<i32>) -
         .fetch_one(&state.postgres)
         .await?;
 
+    let is_admin = is_admin_from_headers(&headers);
+    println!("Admin: {}", is_admin);
 
     let ctx = ViewClassTemplate {
         class: Class {
@@ -96,7 +100,8 @@ pub async fn view_class_fe(State(state): State<AppState>, Path(id): Path<i32>) -
             },
             requirements: record.requirements,
             prof: record.prof,
-        }
+        },
+        is_admin
     };
 
     let body = ctx.render_once().map_err(|e| AppError(e.into()))?;

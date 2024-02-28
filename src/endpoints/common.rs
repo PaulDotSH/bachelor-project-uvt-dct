@@ -46,8 +46,16 @@ pub fn get_username_from_header_unchecked(headers: &HeaderMap) -> &str {
 }
 
 pub fn get_username_from_header(headers: &HeaderMap) -> Option<&str> {
-    let id = headers.get("id").expect("Header \"id\" doesn't exist");
-    id.to_str().ok()
+    let id = headers.get("id");
+    if id.is_none() {
+        return None;
+    }
+    id.unwrap().to_str().ok()
+}
+
+pub fn is_admin_from_headers(headers: &HeaderMap) -> bool {
+    let id = headers.get("id");
+    id.is_some()
 }
 
 pub fn log_action_from_headers(headers: &HeaderMap, ) {
