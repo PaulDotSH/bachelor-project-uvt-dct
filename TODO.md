@@ -1,7 +1,8 @@
 # DCT Backend
 - [x] Admin auth
 - [x] CRUD faculties
-- [ ] CRUD classes
+- [x] CRUD classes
+- [ ] Classes filter
 - [ ] CRUD classes files
 - [ ] Add temporary student checking
 - [ ] Users CRUD, check using the old_choices that the user didn't already choose this class already

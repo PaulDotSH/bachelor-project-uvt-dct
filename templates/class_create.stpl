@@ -5,21 +5,21 @@
 </head>
 <body>
     <form action="/classes/new" method="POST">
-        <input type="text" id="name" name="name" placeholder="Class name"></div>
+        <input type="text" id="name" name="name" placeholder="Class name" required></div>
 
         <label>Choose a faculty:</label>
-        <select name="faculty" id="faculty">
+        <select name="faculty" id="faculty" required>
             <% for faculty in faculties {%>
                 <option value=<%- faculty.id %>><%- faculty.name %></option>
             <% } %>
         </select>
-        <input type="text" id="descr" name="descr" placeholder="Description"></div>
-        <select name="semester" id="semester">
+        <input type="text" id="descr" name="descr" placeholder="Description" required></div>
+        <select name="semester" id="semester" required>
             <option default value=First>First</option>
             <option value=Second>Second</option>
         </select>
-        <input type="text" id="requirements" name="requirements" placeholder="Requirements"></div>
-        <input type="text" id="prof" name="prof" placeholder="Professor"></div>
+        <input type="text" id="requirements" name="requirements" placeholder="Requirements*"></div>
+        <input type="text" id="prof" name="prof" placeholder="Professor" required></div>
 
 
         <input type="submit" value="Create"/>

@@ -8,12 +8,14 @@
         <% for f in &faculties { %>
           <a href="/classes?faculty=<%= f.id %>">
             <div><%= f.name %></div>
-            <form action="/faculty/<%= f.id %>/delete" method="POST">
-                <input type="submit" value="Delete" />
-            </form>
-            <form action="/faculty/<%= f.id %>/edit" method="GET">
-                <input type="submit" value="Edit" />
-            </form>
+            <% if is_admin { %>
+                <form action="/faculty/<%= f.id %>/delete" method="POST">
+                    <input type="submit" value="Delete" />
+                </form>
+                <form action="/faculty/<%= f.id %>/edit" method="GET">
+                    <input type="submit" value="Edit" />
+                </form>
+            <% } %>
             <br>
           </a>
         <% } %>

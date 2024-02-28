@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include!("header.stpl"); %>
+</head>
+<body>
+    <form action="/classes/<%- class.id %>/edit" method="POST">
+        <input type="text" id="name" name="name" placeholder="Class name" value="<%= class.name %>" required></div>
+
+        <label>Choose a faculty:</label>
+        <select name="faculty" id="faculty" required>
+            <% for faculty in faculties {%>
+                <option value=<%- faculty.id %>><%- faculty.name %></option>
+            <% } %>
+        </select>
+        <input type="text" id="descr" name="descr" placeholder="Description" value="<%= class.descr %>" required></div>
+        <% /* TODO Set default value depending on what is set by the current struct */ %>
+        <select name="semester" id="semester" required>
+            <% if class.semester == Semester::First { %>
+                <option selected value=First>First</option>
+                <option value=Second>Second</option>
+            <% } else { %>
+                <option value=First>First</option>
+                <option selected value=Second>Second</option>
+            <% }%>
+        </select>
+        <input type="text" id="requirements" name="requirements" placeholder="Requirements*" value="<%= class.requirements.unwrap_or("".to_owned()) %>"></div>
+        <input type="text" id="prof" name="prof" placeholder="Professor" value="<%= class.prof %>" required></div>
+
+
+        <input type="submit" value="Edit"/>
+    </form>
+</body>
+</html>

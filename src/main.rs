@@ -68,6 +68,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/faculty/new", post(endpoints::faculties::create_faculty))
         .route("/faculty/new", get(endpoints::faculties::create_faculty_fe))
         .route("/classes/new", post(endpoints::classes::create_class))
+        .route("/classes/:id/delete", post(endpoints::classes::delete_class))
+        .route("/classes/:id/edit", post(endpoints::classes::update_class))
+        .route("/classes/:id/edit", get(endpoints::classes::update_class_fe))
         .route("/classes/new", get(endpoints::classes::create_class_fe))
         .route("/check_auth", get(authed_sample_response_handler))
         .layer(middleware::from_fn_with_state(state.clone(), endpoints::auth::auth_middleware::<axum::body::Body>));
@@ -75,12 +78,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // For endpoints that have differences when the user is authed or the user isn't authed
     let auth_differences = Router::new()
         .route("/classes/:id", get(endpoints::classes::view_class_fe))
+        .route("/faculties", get(endpoints::faculties::view_faculties_fe))
         .layer(middleware::from_fn_with_state(state.clone(), endpoints::auth::permissive_middleware::<axum::body::Body>));
 
     // For endpoints that don't care if the user is authed or not
     let no_auth = Router::new()
         .route("/", get(sample_response_handler))
-        .route("/faculties", get(endpoints::faculties::view_faculties_fe))
         .route("/login", get(endpoints::auth::login_fe))
         .route("/login", post(endpoints::auth::login_handler));
 

@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use async_trait::async_trait;
 use axum::http::HeaderMap;
 use rand::distributions::{Alphanumeric, DistString};
@@ -6,7 +7,7 @@ use serde::de::DeserializeOwned;
 use axum::{
     extract::{rejection::FormRejection, Form, FromRequest, Request},
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use crate::error::AppError;
 use validator::Validate;
 
@@ -27,7 +28,7 @@ pub struct Class {
     pub prof: String
 }
 
-#[derive(sqlx::Type, Serialize, Deserialize, Debug)]
+#[derive(sqlx::Type, Serialize, Deserialize, Debug, PartialEq)]
 #[sqlx(type_name = "Semester", rename_all = "PascalCase")]
 pub enum Semester {
     First,
@@ -83,3 +84,15 @@ impl<T, S> FromRequest<S> for ValidatedForm<T>
     }
 }
 
+pub fn empty_string_as_none<'de, D, T>(de: D) -> Result<Option<T>, D::Error>
+    where
+        D: Deserializer<'de>,
+        T: FromStr,
+        T::Err: std::fmt::Display,
+{
+    let opt = Option::<String>::deserialize(de)?;
+    match opt.as_deref() {
+        None | Some("") => Ok(None),
+        Some(s) => FromStr::from_str(s).map_err(serde::de::Error::custom).map(Some),
+    }
+}

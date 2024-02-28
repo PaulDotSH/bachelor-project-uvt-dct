@@ -1,4 +1,5 @@
 use axum::extract::{Path, State};
+use axum::http::HeaderMap;
 use axum::response::{Html, Redirect};
 use sailfish::TemplateOnce;
 use serde::{Deserialize, Serialize};
@@ -111,9 +112,11 @@ pub async fn update_faculty(
 #[template(path = "faculties.stpl")]
 struct ViewFacultiesTemplate {
     faculties: Vec<Faculty>,
+    is_admin: bool
 }
 pub async fn view_faculties_fe(
     State(state): State<AppState>,
+    headers: HeaderMap
 ) -> Result<Html<String>, AppError> {
     let faculties = query_as!(
         Faculty,
@@ -124,8 +127,11 @@ pub async fn view_faculties_fe(
         .fetch_all(&state.postgres)
         .await?;
 
+    let is_admin = is_admin_from_headers(&headers);
+
     let ctx = ViewFacultiesTemplate {
-        faculties
+        faculties,
+        is_admin
     };
     let body = ctx.render_once().map_err(|e| AppError(e.into()))?;
     Ok(Html::from(body))
