@@ -77,13 +77,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .layer(middleware::from_fn_with_state(state.clone(), endpoints::auth::auth_middleware::<axum::body::Body>));
 
     let uploader = Router::new()
-        .route("/classes/:id/upload", post(endpoints::classes::upload))
+        .route("/classes/:id/upload", post(endpoints::classes_files::upload))
         .layer(DefaultBodyLimit::max(12 * 1024* 1024)); //12MB
 
     // For endpoints that have differences when the user is authed or the user isn't authed
     let auth_differences = Router::new()
         .route("/classes/:id", get(endpoints::classes::view_class_fe))
         .route("/faculties", get(endpoints::faculties::view_faculties_fe))
+        .route("/classes", get(endpoints::classes::filter_fe))
         .layer(middleware::from_fn_with_state(state.clone(), endpoints::auth::permissive_middleware::<axum::body::Body>));
 
     // For endpoints that don't care if the user is authed or not

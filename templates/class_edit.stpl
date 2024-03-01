@@ -8,11 +8,7 @@
         <input type="text" id="name" name="name" placeholder="Class name" value="<%= class.name %>" required></div>
 
         <label>Choose a faculty:</label>
-        <select name="faculty" id="faculty" required>
-            <% for faculty in faculties {%>
-                <option value=<%- faculty.id %>><%- faculty.name %></option>
-            <% } %>
-        </select>
+        <% include!("component_faculty_select.stpl"); %>
         <input type="text" id="descr" name="descr" placeholder="Description" value="<%= class.descr %>" required></div>
         <% /* TODO Set default value depending on what is set by the current struct */ %>
         <select name="semester" id="semester" required>

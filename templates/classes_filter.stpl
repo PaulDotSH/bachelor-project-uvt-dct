@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include!("header.stpl"); %>
+</head>
+<body>
+    <form action="" method="GET">
+        <select name="semester" id="semester">
+            <% if let Some(semester) = filter.semester { %>
+                <option value="">Oricare</option>
+                <option <% if semester == Semester::First { %> selected <% } %> value=First>First</option>
+                <option <% if semester == Semester::Second { %> selected <% } %> value=Second>Second</option>
+            <% } else { %>
+                <option selected value="">Oricare</option>
+                <option value=First>First</option>
+                <option value=Second>Second</option>
+            <% } %>
+        </select>
+
+        <select name="faculty" id="faculty">
+            <option selected value="">Oricare</option>
+            <% for faculty in faculties {%>
+                <option <% if filter.faculty.is_some_and(|id| id == faculty.id ) { %> selected <% } %> value=<%- faculty.id %>><%- faculty.name %></option>
+            <% } %>
+        </select>
+
+        <input type="submit" value="Search"/>
+    </form>
+    <% for class in classes { %>
+        <% include!("class.stpl"); %>
+    <% } %>
+</body>
+</html>

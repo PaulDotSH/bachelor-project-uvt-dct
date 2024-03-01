@@ -1,0 +1,5 @@
+        <select name="faculty" id="faculty" required>
+            <% for faculty in faculties {%>
+                <option value=<%- faculty.id %>><%- faculty.name %></option>
+            <% } %>
+        </select>

@@ -1,11 +1,9 @@
-use std::intrinsics::write_bytes;
-use axum::extract::{Multipart, Path, State};
+use axum::extract::{Path, Query, State};
 use axum::http::HeaderMap;
 use axum::response::{Html, Redirect};
 use sailfish::TemplateOnce;
 use serde::Deserialize;
 use sqlx::{query, query_as, query_scalar};
-use tokio::fs::File;
 use validator::Validate;
 use crate::AppState;
 use crate::endpoints::common::*;
@@ -120,34 +118,6 @@ pub async fn view_class_fe(State(state): State<AppState>, headers: HeaderMap, Pa
 
     let body = ctx.render_once().map_err(|e| AppError(e.into()))?;
     Ok(Html::from(body))
-}
-
-use tokio::io::AsyncWriteExt;
-pub async fn upload(State(state): State<AppState>, headers: HeaderMap, Path(id): Path<i32>, mut multipart: Multipart)
-    -> Result<Redirect, AppError> {
-    println!("id in upload {}", id);
-    while let Some(field) = multipart.next_field().await.unwrap() {
-        let file_name = field.file_name().unwrap().to_string();
-        let file_path = format!("./assets/classes/{}", file_name);
-        let mut file = File::create(&file_path).await?;
-
-        let data = field.bytes().await.unwrap();
-        file.write_all(&data).await?;
-
-        //TODO: insert into db
-        if query!(
-        r#"
-        INSERT INTO classes_files(name, classes_id) VALUES ($1, $2);
-        "#,
-        file_name, id
-        )
-            .execute(&state.postgres)
-            .await.is_err() {
-                tokio::fs::remove_file(&file_path).await?;
-            };
-
-    }
-    Ok(Redirect::to(format!("/classes/{}/edit", id).as_str()))
 }
 
 pub async fn delete_class(
@@ -268,6 +238,73 @@ pub async fn update_class_fe(
         },
         faculties,
         files
+    };
+
+    let body = ctx.render_once().map_err(|e| AppError(e.into()))?;
+    Ok(Html::from(body))
+}
+
+
+#[derive(TemplateOnce)]
+#[template(path = "classes_filter.stpl")]
+struct FilterClassesTemplate {
+    classes: Vec<Class>,
+    filter: Filter,
+    faculties: Vec<Faculty>,
+    is_admin: bool
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Filter {
+    #[serde(default, deserialize_with = "empty_string_as_none")]
+    faculty: Option<i32>,
+    #[serde(default, deserialize_with = "empty_string_as_none")]
+    semester: Option<Semester>
+}
+
+
+pub async fn filter_fe(State(state): State<AppState>, headers: HeaderMap, filter: Query<Filter>) -> Result<Html<String>, AppError> {
+    println!("Got: {:?}", filter);
+    let record = query!( //($1 is null or faculty=$1) AND
+        r#"
+        SELECT id, name, descr, faculty, semester::text, requirements, prof FROM classes WHERE ($1::INT is null or faculty = $1) AND ($2::Semester is null or semester = $2);
+        "#,
+        filter.faculty,
+        filter.semester as Option<Semester>
+    )
+        .fetch_all(&state.postgres)
+        .await?;
+
+    let faculties = query_as!(
+        Faculty,
+        r#"
+        SELECT * FROM faculties;
+        "#
+    )
+        .fetch_all(&state.postgres)
+        .await?;
+
+    let classes = record.into_iter().map(|record| Class {
+        id: record.id,
+        name: record.name,
+        descr: record.descr,
+        faculty: record.faculty,
+        semester: match record.semester.unwrap().as_ref() {
+            "First" => Semester::First,
+            "Second" => Semester::Second,
+            _ => panic!("Unexpected semester value"),
+        },
+        requirements: record.requirements,
+        prof: record.prof,
+    }).collect();
+    println!("Classes -> {:?}", &classes);
+
+    let is_admin = is_admin_from_headers(&headers);
+    let ctx = FilterClassesTemplate {
+        classes,
+        filter: filter.0,
+        faculties,
+        is_admin
     };
 
     let body = ctx.render_once().map_err(|e| AppError(e.into()))?;

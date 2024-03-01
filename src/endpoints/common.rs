@@ -25,14 +25,27 @@ pub struct Class {
     pub faculty: i32,
     pub semester: Semester,
     pub requirements: Option<String>,
-    pub prof: String
+    pub prof: String,
+    //TODO: Add class files
 }
 
-#[derive(sqlx::Type, Serialize, Deserialize, Debug, PartialEq)]
+#[derive(sqlx::Type, Serialize, Deserialize, Debug, PartialEq, Clone, Copy)]
 #[sqlx(type_name = "Semester", rename_all = "PascalCase")]
 pub enum Semester {
     First,
     Second
+}
+
+impl FromStr for Semester {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "First" => Ok(Semester::First),
+            "Second" => Ok(Semester::Second),
+            &_ => Err("Cannot parse Semester")
+        }
+    }
 }
 
 pub fn generate_token(length: usize) -> String {

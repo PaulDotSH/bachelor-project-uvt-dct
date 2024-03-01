@@ -3,7 +3,7 @@
 - [x] CRUD faculties
 - [x] CRUD classes
 - [x] CRUD classes files
-- [ ] Classes filter
+- [x] Classes filter (faculty, semester)
 - [ ] Add temporary student checking
 - [ ] Users CRUD, check using the old_choices that the user didn't already choose this class already
 - [ ] Let admins export to csv, move choices to old_choices 
@@ -21,3 +21,5 @@
 - [ ] Admin panel
 - [ ] UI for export csv, CRUD class, filter classes
 - [x] FE for CRUD Faculties
+
+Maybe after everything is done, cache all possible scenarios of classes filter/search and only invalidate manually when the expected db tables are changed

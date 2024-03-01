@@ -8,11 +8,7 @@
         <input type="text" id="name" name="name" placeholder="Class name" required></div>
 
         <label>Choose a faculty:</label>
-        <select name="faculty" id="faculty" required>
-            <% for faculty in faculties {%>
-                <option value=<%- faculty.id %>><%- faculty.name %></option>
-            <% } %>
-        </select>
+        <% include!("component_faculty_select.stpl"); %>
         <input type="text" id="descr" name="descr" placeholder="Description" required></div>
         <select name="semester" id="semester" required>
             <option default value=First>First</option>
