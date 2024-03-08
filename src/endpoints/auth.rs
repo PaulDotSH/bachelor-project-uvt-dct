@@ -14,8 +14,12 @@ use serde::{Deserialize, Serialize};
 use sqlx::query_scalar;
 use crate::constants::*;
 
-pub async fn login_fe() -> Html<&'static str> {
-    Html::from(LOGIN_HTML)
+pub async fn admin_login_fe() -> Html<&'static str> {
+    Html::from(ADMIN_LOGIN_HTML)
+}
+
+pub async fn student_login_fe() -> Html<&'static str> {
+    Html::from(STUDENT_LOGIN_HTML)
 }
 
 #[derive(sqlx::FromRow, Debug)]
@@ -23,6 +27,14 @@ struct User {
     username: String,
     tok_expire: chrono::NaiveDateTime,
 }
+
+#[derive(sqlx::FromRow, Debug)]
+struct Student {
+    nr_mat: String,
+    email: String,
+    tok_expire: chrono::NaiveDateTime,
+}
+
 
 pub async fn permissive_middleware<B>(
     State(state): State<AppState>,
@@ -43,6 +55,10 @@ pub async fn permissive_middleware<B>(
 
     for pair in cookie_pairs {
         if let Some(token) = pair.trim().strip_prefix("TOKEN=") {
+            if token.len() < 1 {
+                return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid token").into_response();
+            }
+
             let Ok(user) = sqlx::query_as!(
                 User,
                 "SELECT username, tok_expire FROM users WHERE token = $1",
@@ -65,6 +81,58 @@ pub async fn permissive_middleware<B>(
     next.run(request).await
 }
 
+pub async fn student_middleware<B>(
+    State(state): State<AppState>,
+    mut request: Request<Body>,
+    next: Next,
+) -> Response {
+    let headers = request.headers_mut();
+
+    let Some(cookie) = headers.get("cookie").cloned() else {
+        return StatusCode::UNAUTHORIZED.into_response();
+    };
+
+    let Ok(cookie_str) = cookie.to_str() else {
+        return StatusCode::UNAUTHORIZED.into_response();
+    };
+
+    let cookie_pairs: Vec<&str> = cookie_str.split(';').collect();
+
+    let mut ok = false;
+    for pair in cookie_pairs {
+        if let Some(token) = pair.trim().strip_prefix("STOKEN=") {
+            if token.len() < 1 {
+                return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid token").into_response();
+            }
+
+            let Ok(student) = sqlx::query_as!(
+                Student,
+                "SELECT nr_mat, email, tok_expire FROM students WHERE token = $1",
+                token
+            )
+                .fetch_one(&state.postgres)
+                .await
+                else {
+                    return next.run(request).await;
+                };
+
+            if student.tok_expire < Utc::now().naive_utc() {
+                return next.run(request).await;
+            }
+
+            ok = true;
+            headers.insert("nr_mat", HeaderValue::from_str(&student.nr_mat).unwrap());
+            headers.insert("email", HeaderValue::from_str(&student.email).unwrap());
+        }
+    }
+
+    if !ok {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+
+    next.run(request).await
+}
+
 pub async fn auth_middleware<B>(
     State(state): State<AppState>,
     mut request: Request<Body>, // insert the username and role headers in the following requests in case they are needed so we don't hit the database again
@@ -82,8 +150,12 @@ pub async fn auth_middleware<B>(
 
     let cookie_pairs: Vec<&str> = cookie_str.split(';').collect();
 
+    let mut ok = false;
     for pair in cookie_pairs {
         if let Some(token) = pair.trim().strip_prefix("TOKEN=") {
+            if token.len() < 1 {
+                return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid token").into_response();
+            }
             let Ok(user) = sqlx::query_as!(
                 User,
                 "SELECT username, tok_expire FROM users WHERE token = $1",
@@ -99,22 +171,33 @@ pub async fn auth_middleware<B>(
                 return StatusCode::UNAUTHORIZED.into_response();
             }
 
+            ok = true;
             headers.insert("id", HeaderValue::from_str(&user.username).unwrap());
         }
     }
 
+    if !ok {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
     next.run(request).await
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Login {
+pub struct AdminLogin {
     username: String,
     password: String,
 }
 
-pub async fn login_handler(
+#[derive(Serialize, Deserialize)]
+pub struct StudentLogin {
+    nr_mat: String,
+    email: String,
+    cnp3: String,
+}
+
+pub async fn admin_login_handler(
     State(state): State<AppState>,
-    Form(payload): Form<Login>,
+    Form(payload): Form<AdminLogin>,
 ) -> Result<Response, AppError> {
     let Ok(pw): Result<String, _> = query_scalar!(
         r#"
@@ -125,7 +208,7 @@ pub async fn login_handler(
     .fetch_one(&state.postgres)
     .await
     else {
-        return Err(AppError(anyhow!(INVALID_USER_PW)));
+        return Err(AppError(anyhow!(INVALID_ADMIN_USER_PW)));
     };
 
     let Ok(parsed_hash) = PasswordHash::new(&pw) else {
@@ -136,7 +219,7 @@ pub async fn login_handler(
         .verify_password(payload.password.as_bytes(), &parsed_hash)
         .is_err()
     {
-        return Err(AppError(anyhow!(INVALID_USER_PW)));
+        return Err(AppError(anyhow!(INVALID_ADMIN_USER_PW)));
     }
 
     let token = generate_token(TOKEN_LENGTH);
@@ -155,5 +238,43 @@ pub async fn login_handler(
     let mut headers = HeaderMap::new();
     headers.insert(header::SET_COOKIE, cookie.parse().unwrap());
 
+    // TODO: Add redirect
+    Ok(headers.into_response())
+}
+
+pub async fn student_login_handler(
+    State(state): State<AppState>,
+    Form(payload): Form<StudentLogin>,
+) -> Result<Response, AppError> {
+    let exists = sqlx::query!(
+    "SELECT EXISTS(SELECT 1 FROM students WHERE nr_mat = $1 AND email = $2 AND cnp3 = $3)",
+    payload.nr_mat,
+    payload.email,
+    payload.cnp3
+    )
+        .fetch_one(&state.postgres)
+        .await?;
+
+    if !exists.exists.unwrap() {
+        return Err(AppError(anyhow!(INVALID_STUDENT_DETAILS)));
+    }
+
+    let token = generate_token(TOKEN_LENGTH);
+
+    sqlx::query!(
+        "UPDATE students SET token = $1, tok_expire = $2 WHERE nr_mat = $3",
+        token,
+        (Utc::now() + TOKEN_EXPIRE_TIME).naive_utc(),
+        payload.nr_mat
+    )
+        .execute(&state.postgres)
+        .await?;
+
+    let cookie = format!("STOKEN={}; Path=/; Max-Age=604800", &token);
+
+    let mut headers = HeaderMap::new();
+    headers.insert(header::SET_COOKIE, cookie.parse().unwrap());
+
+    // TODO: Add redirect
     Ok(headers.into_response())
 }

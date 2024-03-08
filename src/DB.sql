@@ -17,7 +17,9 @@ CREATE index on users using hash (username);
 CREATE TABLE IF NOT EXISTS students(
                                        nr_mat Text NOT NULL PRIMARY KEY,
                                        email Text NOT NULL UNIQUE,
-                                       cnp3 varchar(3) NOT NULL
+                                       cnp3 varchar(3) NOT NULL,
+                                       token Text NOT NULL,
+                                       tok_expire Timestamp NOT NULL DEFAULT NOW() + INTERVAL '7 days'
 );
 
 DO $$

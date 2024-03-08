@@ -62,7 +62,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let state = AppState { postgres: pool }; //TODO: Maybe add redis here for caching queries
 
     // Strictly for admins
-    let auth = Router::new()
+    let admin_auth = Router::new()
         .route("/faculty/:id/edit", get(endpoints::faculties::update_faculty_fe))
         .route("/faculty/:id/edit", post(endpoints::faculties::update_faculty))
         .route("/faculty/:id/delete", post(endpoints::faculties::delete_faculty))
@@ -90,12 +90,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // For endpoints that don't care if the user is authed or not
     let no_auth = Router::new()
         .route("/", get(sample_response_handler))
-        .route("/login", get(endpoints::auth::login_fe))
-        .route("/login", post(endpoints::auth::login_handler));
+        .route("/admin/login", get(endpoints::auth::admin_login_fe))
+        .route("/admin/login", post(endpoints::auth::admin_login_handler))
+        .route("/login", get(endpoints::auth::student_login_fe))
+        .route("/login", post(endpoints::auth::student_login_handler));
+
+
+    let student_auth = Router::new()
+        .route("/student-auth", get(sample_response_handler))
+        .layer(middleware::from_fn_with_state(state.clone(), endpoints::auth::student_middleware::<axum::body::Body>));
 
     let app = Router::new()
-        .nest("/", auth)
+        .nest("/", admin_auth)
         .nest("/", auth_differences)
+        .nest("/", student_auth)
         .nest("/", no_auth)
         .nest("/", uploader)
         .with_state(state)
