@@ -4,13 +4,13 @@
 - [x] CRUD classes
 - [x] CRUD classes files
 - [x] Classes filter (faculty, semester)
-- [ ] Add temporary student checking
+- [x] Add temporary student checking
+- [x] Implement student auth
+- [x] Basic Logging
 - [ ] Users CRUD, check using the old_choices that the user didn't already choose this class already
 - [ ] Let admins export to csv, move choices to old_choices 
 - [ ] Make the student not able to pick a class from their own faculty
-- [ ] Implement user auth
 - [ ] Move to UVT UMS auth
-- [ ] Admin features (logging, view logs, etc.)
 - [ ] Change configuration to be less verbose, example -> https://www.thorsten-hans.com/working-with-environment-variables-in-rust/
 - [ ] Requirements are optional, when creating a class, deserialize empty string in requirements as None
 

@@ -12,10 +12,17 @@ use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 use std::env;
 use std::error::Error;
-use axum::extract::{DefaultBodyLimit, Request};
+use axum::body::Body;
+use axum::extract::{ConnectInfo, DefaultBodyLimit, Request};
 use tokio::net::TcpListener;
+use tokio::net::unix::SocketAddr;
 use tower_http::services::ServeDir;
+use tower_http::trace;
 use crate::constants::BAD_DOT_ENV;
+use tracing::{info, info_span, instrument, Level, Span};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use tower_http::trace::TraceLayer;
+use tracing_subscriber::fmt::writer::MakeWriterExt;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -43,10 +50,31 @@ async fn create_default_account(pool: &Pool<Postgres>) {
     .await;
 }
 
+#[  instrument]
+async fn log_request_info(request: &Request<Body>, addr: &SocketAddr) {
+    let headers = request.headers();
+    let foo = format!("{:?}", addr);
+    let ip = if let Some(forwarded_for) = headers.get("X-Forwarded-For") {
+        forwarded_for.to_str().unwrap_or_else(|_| "Unknown")
+    } else if let Some(real_ip) = headers.get("X-Real-IP") {
+        real_ip.to_str().unwrap_or_else(|_| "Unknown")
+    } else {
+        foo.as_str()
+        // addr.ip().to_string().as_str()
+    };
+
+    info!("IP: {}, Headers: {:?}", ip, headers);
+}
+
 #[allow(dead_code)]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     dotenvy::dotenv()?;
+
+    // Added tracing, more advanced tracing should be done in nginx or whatever alternative used
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::fmt::layer())
+        .init();
 
     let pool = PgPoolOptions::new()
         .max_connections(
@@ -74,7 +102,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/classes/:id/edit", get(endpoints::classes::update_class_fe))
         .route("/classes/new", get(endpoints::classes::create_class_fe))
         .route("/check_auth", get(authed_sample_response_handler))
-        .layer(middleware::from_fn_with_state(state.clone(), endpoints::auth::auth_middleware::<axum::body::Body>));
+        .layer(middleware::from_fn_with_state(state.clone(), endpoints::auth::auth_middleware::<axum::body::Body>))
+        .layer(TraceLayer::new_for_http());
 
     let uploader = Router::new()
         .route("/classes/:id/upload", post(endpoints::classes_files::upload))
