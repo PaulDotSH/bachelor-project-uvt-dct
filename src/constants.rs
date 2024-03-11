@@ -1,5 +1,4 @@
 use chrono::{Duration, TimeDelta};
-use crate::constant_parse::*;
 // You can change this depending on your preferences
 pub const INVALID_ADMIN_USER_PW: &'static str = "Incorrect username or password";
 pub const INVALID_STUDENT_DETAILS: &'static str = "Incorrect nr_mat, email or cnp";

@@ -48,6 +48,7 @@ impl FromStr for Semester {
     }
 }
 
+#[inline(always)]
 pub fn generate_token(length: usize) -> String {
     Alphanumeric.sample_string(&mut thread_rng(), length)
 }
@@ -59,6 +60,21 @@ pub fn get_username_from_header_unchecked(headers: &HeaderMap) -> &str {
         .expect("Header cannot be converted into a string")
 }
 
+#[inline(always)]
+pub fn get_nr_mat_from_header_unchecked(headers: &HeaderMap) -> &str {
+    let id = headers.get("nr_mat").expect("Header \"nr_mat\" doesn't exist");
+    id.to_str()
+        .expect("Header cannot be converted into a string")
+}
+
+#[inline(always)]
+pub fn get_email_from_header_unchecked(headers: &HeaderMap) -> &str {
+    let id = headers.get("email").expect("Header \"email\" doesn't exist");
+    id.to_str()
+        .expect("Header cannot be converted into a string")
+}
+
+#[inline(always)]
 pub fn get_username_from_header(headers: &HeaderMap) -> Option<&str> {
     let id = headers.get("id");
     if id.is_none() {
@@ -67,18 +83,12 @@ pub fn get_username_from_header(headers: &HeaderMap) -> Option<&str> {
     id.unwrap().to_str().ok()
 }
 
+#[inline(always)]
 pub fn is_admin_from_headers(headers: &HeaderMap) -> bool {
     let id = headers.get("id");
     id.is_some()
 }
 
-pub fn log_action_from_headers(headers: &HeaderMap, ) {
-    log_action(get_username_from_header_unchecked(headers));
-}
-
-pub fn log_action(username: &str) {
-    // TODO: Implement
-}
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ValidatedForm<T>(pub T);
 #[async_trait]

@@ -126,6 +126,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 
     let student_auth = Router::new()
+        .route("/pick", get(endpoints::choices::pick_fe))
         .route("/student-auth", get(sample_response_handler))
         .layer(middleware::from_fn_with_state(state.clone(), endpoints::auth::student_middleware::<axum::body::Body>));
 

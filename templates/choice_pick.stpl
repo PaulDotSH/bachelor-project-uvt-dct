@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include!("header.stpl"); %>
+</head>
+<body>
+
+    <% for class in fs_classes { %>
+        <div>Name: <%= class.name %></div>
+        <div>Semester: <%- class.semester | dbg %></div>
+    <% } %>
+    <div>FOOOOOOOOOOOOOOOOOOOOOOOOOOO: Second Semester</div>
+    <% for class in ss_classes { %>
+        <div>Name: <%= class.name %></div>
+        <div>Semester: <%- class.semester | dbg %></div>
+    <% } %>
+</body>
+</html>

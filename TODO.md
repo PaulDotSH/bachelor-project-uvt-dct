@@ -7,7 +7,9 @@
 - [x] Add temporary student checking
 - [x] Implement student auth
 - [x] Basic Logging
-- [ ] Users CRUD, check using the old_choices that the user didn't already choose this class already
+- [x] Add db with sample data
+- [ ] Choices CRUD
+- [ ] Check using the old_choices that the user didn't already choose this class already in the past
 - [ ] Let admins export to csv, move choices to old_choices 
 - [ ] Make the student not able to pick a class from their own faculty
 - [ ] Move to UVT UMS auth

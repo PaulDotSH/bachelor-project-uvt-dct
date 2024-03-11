@@ -14,10 +14,16 @@ CREATE TABLE IF NOT EXISTS users(
 CREATE index on users using hash (token);
 CREATE index on users using hash (username);
 
+CREATE TABLE IF NOT EXISTS faculties(
+                                        id SERIAL NOT NULL PRIMARY KEY,
+                                        name Text NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS students(
                                        nr_mat Text NOT NULL PRIMARY KEY,
                                        email Text NOT NULL UNIQUE,
                                        cnp3 varchar(3) NOT NULL,
+                                       faculty SERIAL NOT NULL references faculties(id),
                                        token Text NOT NULL,
                                        tok_expire Timestamp NOT NULL DEFAULT NOW() + INTERVAL '7 days'
 );
@@ -28,12 +34,6 @@ DO $$
             CREATE TYPE Semester AS ENUM ('First', 'Second');
         END IF;
     END $$;
-
-CREATE TABLE IF NOT EXISTS faculties(
-                                        id SERIAL NOT NULL PRIMARY KEY,
-                                        name Text NOT NULL
-);
-
 
 CREATE TABLE IF NOT EXISTS classes(
                                       id SERIAL NOT NULL PRIMARY KEY,
