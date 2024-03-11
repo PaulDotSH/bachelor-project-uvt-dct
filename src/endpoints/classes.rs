@@ -5,6 +5,7 @@ use sailfish::TemplateOnce;
 use serde::Deserialize;
 use sqlx::{query, query_as, query_scalar};
 use validator::Validate;
+
 use crate::AppState;
 use crate::endpoints::common::*;
 use crate::error::AppError;
@@ -26,7 +27,7 @@ pub struct NewClass {
 #[derive(TemplateOnce)]
 #[template(path = "class_create.stpl")]
 struct CreateClassTemplate {
-    faculties: Vec<Faculty>
+    faculties: Vec<Faculty>,
 }
 
 pub async fn create_class_fe(State(state): State<AppState>) -> Result<Html<String>, AppError> {
@@ -36,12 +37,10 @@ pub async fn create_class_fe(State(state): State<AppState>) -> Result<Html<Strin
         SELECT * FROM faculties;
         "#
     )
-        .fetch_all(&state.postgres)
-        .await?;
+    .fetch_all(&state.postgres)
+    .await?;
 
-    let ctx = CreateClassTemplate {
-        faculties
-    };
+    let ctx = CreateClassTemplate { faculties };
 
     let body = ctx.render_once().map_err(|e| AppError(e.into()))?;
     Ok(Html::from(body))
@@ -73,10 +72,14 @@ pub async fn create_class(
 struct ViewClassTemplate {
     class: Class,
     files: Vec<ClassFile>,
-    is_admin: bool
+    is_admin: bool,
 }
 
-pub async fn view_class_fe(State(state): State<AppState>, headers: HeaderMap, Path(id): Path<i32>) -> Result<Html<String>, AppError> {
+pub async fn view_class_fe(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<i32>,
+) -> Result<Html<String>, AppError> {
     let record = query!(
         r#"
         SELECT id, name, descr, faculty, semester::text, requirements, prof FROM classes WHERE id = $1 AND disabled = false;
@@ -93,8 +96,8 @@ pub async fn view_class_fe(State(state): State<AppState>, headers: HeaderMap, Pa
         "#,
         id
     )
-        .fetch_all(&state.postgres)
-        .await?;
+    .fetch_all(&state.postgres)
+    .await?;
 
     let is_admin = is_admin_from_headers(&headers);
 
@@ -113,7 +116,7 @@ pub async fn view_class_fe(State(state): State<AppState>, headers: HeaderMap, Pa
             prof: record.prof,
         },
         is_admin,
-        files
+        files,
     };
 
     let body = ctx.render_once().map_err(|e| AppError(e.into()))?;
@@ -130,8 +133,8 @@ pub async fn delete_class(
         "#,
         id,
     )
-        .execute(&state.postgres)
-        .await?;
+    .execute(&state.postgres)
+    .await?;
 
     Ok(Redirect::to("/classes"))
 }
@@ -180,19 +183,18 @@ pub async fn update_class(
 struct EditClassTemplate {
     class: Class,
     faculties: Vec<Faculty>,
-    files: Vec<ClassFile>
+    files: Vec<ClassFile>,
 }
 
 pub struct ClassFile {
     name: String,
-    id: i32
+    id: i32,
 }
 
 pub async fn update_class_fe(
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> Result<Html<String>, AppError> {
-
     let class_record = query!(
         r#"
         SELECT id, name, descr, faculty, semester::text, requirements, prof FROM classes WHERE id = $1;
@@ -209,8 +211,8 @@ pub async fn update_class_fe(
         "#,
         id
     )
-        .fetch_all(&state.postgres)
-        .await?;
+    .fetch_all(&state.postgres)
+    .await?;
 
     let faculties = query_as!(
         Faculty,
@@ -218,8 +220,8 @@ pub async fn update_class_fe(
         SELECT * FROM faculties;
         "#
     )
-        .fetch_all(&state.postgres)
-        .await?;
+    .fetch_all(&state.postgres)
+    .await?;
 
     //TODO: Fix this duplication
     let ctx = EditClassTemplate {
@@ -237,13 +239,12 @@ pub async fn update_class_fe(
             prof: class_record.prof,
         },
         faculties,
-        files
+        files,
     };
 
     let body = ctx.render_once().map_err(|e| AppError(e.into()))?;
     Ok(Html::from(body))
 }
-
 
 #[derive(TemplateOnce)]
 #[template(path = "classes_filter.stpl")]
@@ -251,7 +252,7 @@ struct FilterClassesTemplate {
     classes: Vec<Class>,
     filter: Filter,
     faculties: Vec<Faculty>,
-    is_admin: bool
+    is_admin: bool,
 }
 
 #[derive(Deserialize, Debug)]
@@ -259,11 +260,14 @@ pub struct Filter {
     #[serde(default, deserialize_with = "empty_string_as_none")]
     faculty: Option<i32>,
     #[serde(default, deserialize_with = "empty_string_as_none")]
-    semester: Option<Semester>
+    semester: Option<Semester>,
 }
 
-
-pub async fn filter_fe(State(state): State<AppState>, headers: HeaderMap, filter: Query<Filter>) -> Result<Html<String>, AppError> {
+pub async fn filter_fe(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    filter: Query<Filter>,
+) -> Result<Html<String>, AppError> {
     println!("Got: {:?}", filter);
     let record = query!( //($1 is null or faculty=$1) AND
         r#"
@@ -281,22 +285,25 @@ pub async fn filter_fe(State(state): State<AppState>, headers: HeaderMap, filter
         SELECT * FROM faculties;
         "#
     )
-        .fetch_all(&state.postgres)
-        .await?;
+    .fetch_all(&state.postgres)
+    .await?;
 
-    let classes = record.into_iter().map(|record| Class {
-        id: record.id,
-        name: record.name,
-        descr: record.descr,
-        faculty: record.faculty,
-        semester: match record.semester.unwrap().as_ref() {
-            "First" => Semester::First,
-            "Second" => Semester::Second,
-            _ => panic!("Unexpected semester value"),
-        },
-        requirements: record.requirements,
-        prof: record.prof,
-    }).collect();
+    let classes = record
+        .into_iter()
+        .map(|record| Class {
+            id: record.id,
+            name: record.name,
+            descr: record.descr,
+            faculty: record.faculty,
+            semester: match record.semester.unwrap().as_ref() {
+                "First" => Semester::First,
+                "Second" => Semester::Second,
+                _ => panic!("Unexpected semester value"),
+            },
+            requirements: record.requirements,
+            prof: record.prof,
+        })
+        .collect();
     println!("Classes -> {:?}", &classes);
 
     let is_admin = is_admin_from_headers(&headers);
@@ -304,7 +311,7 @@ pub async fn filter_fe(State(state): State<AppState>, headers: HeaderMap, filter
         classes,
         filter: filter.0,
         faculties,
-        is_admin
+        is_admin,
     };
 
     let body = ctx.render_once().map_err(|e| AppError(e.into()))?;

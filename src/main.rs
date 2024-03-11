@@ -1,28 +1,29 @@
+use std::env;
+use std::error::Error;
+
+use argon2::{Argon2, PasswordHasher};
+use argon2::password_hash::rand_core::OsRng;
+use argon2::password_hash::SaltString;
+use axum::{middleware, Router};
+use axum::body::Body;
+use axum::extract::{DefaultBodyLimit, Request};
+use axum::routing::{get, post};
+use sqlx::{Pool, Postgres};
+use sqlx::postgres::PgPoolOptions;
+use tokio::net::TcpListener;
+use tokio::net::unix::SocketAddr;
+use tower_http::services::ServeDir;
+use tower_http::trace::TraceLayer;
+use tracing::{info, instrument};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+use crate::constants::BAD_DOT_ENV;
+
 mod endpoints;
 mod error;
 mod constant_parse;
 pub mod constants;
-
-use argon2::password_hash::rand_core::OsRng;
-use argon2::password_hash::SaltString;
-use argon2::{Argon2, PasswordHasher};
-use axum::routing::{get, post};
-use axum::{middleware, Router};
-use sqlx::postgres::PgPoolOptions;
-use sqlx::{Pool, Postgres};
-use std::env;
-use std::error::Error;
-use axum::body::Body;
-use axum::extract::{ConnectInfo, DefaultBodyLimit, Request};
-use tokio::net::TcpListener;
-use tokio::net::unix::SocketAddr;
-use tower_http::services::ServeDir;
-use tower_http::trace;
-use crate::constants::BAD_DOT_ENV;
-use tracing::{info, info_span, instrument, Level, Span};
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use tower_http::trace::TraceLayer;
-use tracing_subscriber::fmt::writer::MakeWriterExt;
+pub mod collect_with_capacity;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -32,6 +33,7 @@ pub struct AppState {
 pub async fn sample_response_handler() -> String {
     "Home page example response".to_string()
 }
+
 pub async fn authed_sample_response_handler() -> String {
     "Authed home page example response".to_string()
 }
@@ -46,11 +48,11 @@ async fn create_default_account(pool: &Pool<Postgres>) {
         "INSERT INTO users (username, pass, token, tok_expire) VALUES ('Admin', $1, '', NOW())",
         password.to_string(),
     )
-    .execute(pool)
-    .await;
+        .execute(pool)
+        .await;
 }
 
-#[  instrument]
+#[instrument]
 async fn log_request_info(request: &Request<Body>, addr: &SocketAddr) {
     let headers = request.headers();
     let foo = format!("{:?}", addr);
@@ -107,7 +109,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let uploader = Router::new()
         .route("/classes/:id/upload", post(endpoints::classes_files::upload))
-        .layer(DefaultBodyLimit::max(12 * 1024* 1024)); //12MB
+        .layer(DefaultBodyLimit::max(12 * 1024 * 1024)); //12MB
 
     // For endpoints that have differences when the user is authed or the user isn't authed
     let auth_differences = Router::new()

@@ -1,18 +1,19 @@
-use crate::endpoints::common::generate_token;
-use crate::error::AppError;
-use crate::AppState;
 use anyhow::anyhow;
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use axum::body::Body;
 use axum::extract::State;
+use axum::Form;
 use axum::http::{header, HeaderMap, HeaderValue, Request, StatusCode};
 use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Response};
-use axum::Form;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::query_scalar;
+
+use crate::AppState;
 use crate::constants::*;
+use crate::endpoints::common::generate_token;
+use crate::error::AppError;
 
 pub async fn admin_login_fe() -> Html<&'static str> {
     Html::from(ADMIN_LOGIN_HTML)
@@ -161,11 +162,11 @@ pub async fn auth_middleware<B>(
                 "SELECT username, tok_expire FROM users WHERE token = $1",
                 token
             )
-            .fetch_one(&state.postgres)
-            .await
-            else {
-                return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid token").into_response();
-            };
+                .fetch_one(&state.postgres)
+                .await
+                else {
+                    return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid token").into_response();
+                };
 
             if user.tok_expire < Utc::now().naive_utc() {
                 return StatusCode::UNAUTHORIZED.into_response();
@@ -205,11 +206,11 @@ pub async fn admin_login_handler(
         "#,
         payload.username,
     )
-    .fetch_one(&state.postgres)
-    .await
-    else {
-        return Err(AppError(anyhow!(INVALID_ADMIN_USER_PW)));
-    };
+        .fetch_one(&state.postgres)
+        .await
+        else {
+            return Err(AppError(anyhow!(INVALID_ADMIN_USER_PW)));
+        };
 
     let Ok(parsed_hash) = PasswordHash::new(&pw) else {
         return Err(AppError(anyhow!("Db malformed for user")));
@@ -230,8 +231,8 @@ pub async fn admin_login_handler(
         (Utc::now() + TOKEN_EXPIRE_TIME).naive_utc(),
         payload.username
     )
-    .execute(&state.postgres)
-    .await?;
+        .execute(&state.postgres)
+        .await?;
 
     let cookie = format!("TOKEN={}; Path=/; Max-Age=604800", &token);
 

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 // This is insanely hard to make generic atm, so just bear with me
 pub const fn parse_u32(s: &str) -> u32 {
     let mut out: u32 = 0;

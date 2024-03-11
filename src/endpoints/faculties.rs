@@ -2,12 +2,13 @@ use axum::extract::{Path, State};
 use axum::http::HeaderMap;
 use axum::response::{Html, Redirect};
 use sailfish::TemplateOnce;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use sqlx::{query, query_as};
+use validator::Validate;
+
 use crate::AppState;
 use crate::endpoints::common::*;
 use crate::error::AppError;
-use validator::Validate;
 
 pub async fn create_faculty_fe() -> Result<Html<String>, AppError> {
     let ctx = CreateFacultyTemplate {};
@@ -18,7 +19,7 @@ pub async fn create_faculty_fe() -> Result<Html<String>, AppError> {
 #[derive(Deserialize, Validate)]
 pub struct NewFaculty {
     #[validate(length(min = 3, message = "Nume facultate prea scurt"))]
-    name: String
+    name: String,
 }
 
 pub async fn create_faculty(
@@ -31,8 +32,8 @@ pub async fn create_faculty(
         "#,
         payload.name,
     )
-        .execute(&state.postgres)
-        .await?;
+    .execute(&state.postgres)
+    .await?;
 
     Ok(Redirect::to("/faculties"))
 }
@@ -47,8 +48,8 @@ pub async fn delete_faculty(
         "#,
         id,
     )
-        .execute(&state.postgres)
-        .await?;
+    .execute(&state.postgres)
+    .await?;
 
     Ok(Redirect::to("/faculties"))
 }
@@ -56,7 +57,7 @@ pub async fn delete_faculty(
 #[derive(Deserialize, Validate)]
 pub struct UpdatedFaculty {
     #[validate(length(min = 3, message = "Nume facultate prea scurt"))]
-    name: String
+    name: String,
 }
 
 #[derive(TemplateOnce)]
@@ -80,12 +81,10 @@ pub async fn update_faculty_fe(
         "#,
         id
     )
-        .fetch_one(&state.postgres)
-        .await?;
+    .fetch_one(&state.postgres)
+    .await?;
 
-    let ctx = EditFacultyTemplate {
-        faculty
-    };
+    let ctx = EditFacultyTemplate { faculty };
     let body = ctx.render_once().map_err(|e| AppError(e.into()))?;
     Ok(Html::from(body))
 }
@@ -102,8 +101,8 @@ pub async fn update_faculty(
         payload.name,
         id
     )
-        .execute(&state.postgres)
-        .await?;
+    .execute(&state.postgres)
+    .await?;
 
     Ok(Redirect::to("/faculties"))
 }
@@ -112,11 +111,11 @@ pub async fn update_faculty(
 #[template(path = "faculties.stpl")]
 struct ViewFacultiesTemplate {
     faculties: Vec<Faculty>,
-    is_admin: bool
+    is_admin: bool,
 }
 pub async fn view_faculties_fe(
     State(state): State<AppState>,
-    headers: HeaderMap
+    headers: HeaderMap,
 ) -> Result<Html<String>, AppError> {
     let faculties = query_as!(
         Faculty,
@@ -124,14 +123,14 @@ pub async fn view_faculties_fe(
         SELECT * FROM faculties;
         "#
     )
-        .fetch_all(&state.postgres)
-        .await?;
+    .fetch_all(&state.postgres)
+    .await?;
 
     let is_admin = is_admin_from_headers(&headers);
 
     let ctx = ViewFacultiesTemplate {
         faculties,
-        is_admin
+        is_admin,
     };
     let body = ctx.render_once().map_err(|e| AppError(e.into()))?;
     Ok(Html::from(body))
