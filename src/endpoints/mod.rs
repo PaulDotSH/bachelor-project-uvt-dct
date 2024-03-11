@@ -1,6 +1,6 @@
 pub mod auth;
-pub mod faculties;
-mod common;
+pub mod choices;
 pub mod classes;
 pub mod classes_files;
-pub mod choices;
+mod common;
+pub mod faculties;

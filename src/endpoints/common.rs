@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
 use async_trait::async_trait;
@@ -36,6 +37,19 @@ pub struct Class {
 pub enum Semester {
     First,
     Second,
+}
+
+impl Display for Semester {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Semester::First => {
+                write!(f, "First")
+            }
+            Semester::Second => {
+                write!(f, "Second")
+            }
+        }
+    }
 }
 
 impl FromStr for Semester {

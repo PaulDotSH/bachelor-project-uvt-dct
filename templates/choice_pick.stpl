@@ -3,16 +3,35 @@
 <head>
   <% include!("header.stpl"); %>
 </head>
-<body>
+<%
+// "CACHING" so we don't do `class.semester | dbg` every time
+let fs_name = fs_classes[0].semester.to_string();
+let ss_name = ss_classes[0].semester.to_string();
+%>
 
-    <% for class in fs_classes { %>
-        <div>Name: <%= class.name %></div>
-        <div>Semester: <%- class.semester | dbg %></div>
+<% if let Some(ref choices) = choices { %>
+    <div> You first picked your choice at <%- choices.created | disp %> </div>
+    <% if let Some(updated) = choices.updated { %>
+        <div> You updated your choices last time at <%- updated | disp %> </div>
     <% } %>
-    <div>FOOOOOOOOOOOOOOOOOOOOOOOOOOO: Second Semester</div>
-    <% for class in ss_classes { %>
-        <div>Name: <%= class.name %></div>
-        <div>Semester: <%- class.semester | dbg %></div>
-    <% } %>
+<% } %>
+<body>
+    <form action="pick" method="POST">
+        <% for class in fs_classes { %>
+            <div>Name: <%= class.name %></div>
+            <div>Semester: <%- fs_name %></div>
+            <input type="radio" name="first" value="<%- class.id %>" <% if choices.as_ref().is_some_and(|c| c.first_choice == class.id) { %> checked <% } %>>
+        <% } %>
+        <br>
+        <br>
+        <br>
+        <% for class in ss_classes { %>
+            <div>Name: <%= class.name %></div>
+            <div>Semester: <%- ss_name %></div>
+            <input type="radio" name="second" value="<%- class.id %>" <% if choices.as_ref().is_some_and(|c| c.second_choice == class.id) { %> checked <% } %>>
+        <% } %>
+
+    <input type="submit" value="Update"/>
+    </form>
 </body>
 </html>

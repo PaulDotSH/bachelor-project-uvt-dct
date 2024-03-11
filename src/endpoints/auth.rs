@@ -36,7 +36,6 @@ struct Student {
     tok_expire: chrono::NaiveDateTime,
 }
 
-
 pub async fn permissive_middleware<B>(
     State(state): State<AppState>,
     mut request: Request<Body>, // insert the username and role headers in the following requests in case they are needed so we don't hit the database again
@@ -65,11 +64,11 @@ pub async fn permissive_middleware<B>(
                 "SELECT username, tok_expire FROM users WHERE token = $1",
                 token
             )
-                .fetch_one(&state.postgres)
-                .await
-                else {
-                    return next.run(request).await;
-                };
+            .fetch_one(&state.postgres)
+            .await
+            else {
+                return next.run(request).await;
+            };
 
             if user.tok_expire < Utc::now().naive_utc() {
                 return next.run(request).await;
@@ -111,11 +110,11 @@ pub async fn student_middleware<B>(
                 "SELECT nr_mat, email, tok_expire FROM students WHERE token = $1",
                 token
             )
-                .fetch_one(&state.postgres)
-                .await
-                else {
-                    return next.run(request).await;
-                };
+            .fetch_one(&state.postgres)
+            .await
+            else {
+                return next.run(request).await;
+            };
 
             if student.tok_expire < Utc::now().naive_utc() {
                 return next.run(request).await;
@@ -162,11 +161,11 @@ pub async fn auth_middleware<B>(
                 "SELECT username, tok_expire FROM users WHERE token = $1",
                 token
             )
-                .fetch_one(&state.postgres)
-                .await
-                else {
-                    return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid token").into_response();
-                };
+            .fetch_one(&state.postgres)
+            .await
+            else {
+                return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid token").into_response();
+            };
 
             if user.tok_expire < Utc::now().naive_utc() {
                 return StatusCode::UNAUTHORIZED.into_response();
@@ -206,11 +205,11 @@ pub async fn admin_login_handler(
         "#,
         payload.username,
     )
-        .fetch_one(&state.postgres)
-        .await
-        else {
-            return Err(AppError(anyhow!(INVALID_ADMIN_USER_PW)));
-        };
+    .fetch_one(&state.postgres)
+    .await
+    else {
+        return Err(AppError(anyhow!(INVALID_ADMIN_USER_PW)));
+    };
 
     let Ok(parsed_hash) = PasswordHash::new(&pw) else {
         return Err(AppError(anyhow!("Db malformed for user")));
@@ -231,8 +230,8 @@ pub async fn admin_login_handler(
         (Utc::now() + TOKEN_EXPIRE_TIME).naive_utc(),
         payload.username
     )
-        .execute(&state.postgres)
-        .await?;
+    .execute(&state.postgres)
+    .await?;
 
     let cookie = format!("TOKEN={}; Path=/; Max-Age=604800", &token);
 
@@ -248,13 +247,13 @@ pub async fn student_login_handler(
     Form(payload): Form<StudentLogin>,
 ) -> Result<Response, AppError> {
     let exists = sqlx::query!(
-    "SELECT EXISTS(SELECT 1 FROM students WHERE nr_mat = $1 AND email = $2 AND cnp3 = $3)",
-    payload.nr_mat,
-    payload.email,
-    payload.cnp3
+        "SELECT EXISTS(SELECT 1 FROM students WHERE nr_mat = $1 AND email = $2 AND cnp3 = $3)",
+        payload.nr_mat,
+        payload.email,
+        payload.cnp3
     )
-        .fetch_one(&state.postgres)
-        .await?;
+    .fetch_one(&state.postgres)
+    .await?;
 
     if !exists.exists.unwrap() {
         return Err(AppError(anyhow!(INVALID_STUDENT_DETAILS)));
@@ -268,8 +267,8 @@ pub async fn student_login_handler(
         (Utc::now() + TOKEN_EXPIRE_TIME).naive_utc(),
         payload.nr_mat
     )
-        .execute(&state.postgres)
-        .await?;
+    .execute(&state.postgres)
+    .await?;
 
     let cookie = format!("STOKEN={}; Path=/; Max-Age=604800", &token);
 

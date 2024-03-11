@@ -1,17 +1,17 @@
 use axum::extract::State;
+use axum::Form;
 use axum::http::HeaderMap;
-use axum::response::Html;
+use axum::response::{Html, Redirect};
 use chrono::NaiveDateTime;
 use sailfish::TemplateOnce;
 use serde::{Deserialize, Serialize};
 use sqlx::{query, query_as};
-use crate::collect_with_capacity::*;
+use validator::Validate;
 
 use crate::AppState;
+use crate::collect_with_capacity::*;
 use crate::endpoints::common::*;
 use crate::error::AppError;
-
-//TODO: Change faculty id to faculty name in the first query, using join
 
 struct StudentChoice {
     first_choice: i32,
@@ -64,24 +64,28 @@ pub async fn pick_fe(
     let mut split_idx = 0;
 
     let len = records.len();
-    let classes = records.into_iter().enumerate().map(|(i, record)| {
-        let semester = match record.semester.unwrap().as_ref() {
-            "First" => Semester::First,
-            "Second" => {
-                if split_idx == 0 {
-                    split_idx = i;
+    let classes = records
+        .into_iter()
+        .enumerate()
+        .map(|(i, record)| {
+            let semester = match record.semester.unwrap().as_ref() {
+                "First" => Semester::First,
+                "Second" => {
+                    if split_idx == 0 {
+                        split_idx = i;
+                    }
+                    Semester::Second
                 }
-                Semester::Second
-            }
-            _ => panic!("Unexpected semester value"),
-        };
+                _ => panic!("Unexpected semester value"),
+            };
 
-        TinyClass {
-            id: record.id,
-            name: record.name,
-            semester,
-        }
-    }).collect_with_capacity(len);
+            TinyClass {
+                id: record.id,
+                name: record.name,
+                semester,
+            }
+        })
+        .collect_with_capacity(len);
 
     let ctx = PickChoiceTemplate {
         fs_classes: &classes[0..split_idx],
@@ -92,4 +96,38 @@ pub async fn pick_fe(
     let body = ctx.render_once().map_err(|e| AppError(e.into()))?;
 
     Ok(Html::from(body))
+}
+
+#[derive(Deserialize, Validate, Debug)]
+pub struct Choice {
+    first: i32,
+    second: i32,
+}
+
+pub async fn pick(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Form(payload): Form<Choice>,
+) -> Result<Redirect, AppError> {
+    //TODO: Check if the user selected a class from it's faculty
+
+    let nr_mat = get_nr_mat_from_header_unchecked(&headers);
+
+    query!(
+        r#"
+        INSERT INTO choices (nr_mat, first_choice, second_choice)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (nr_mat) DO UPDATE
+        SET first_choice = EXCLUDED.first_choice,
+            second_choice = EXCLUDED.second_choice,
+            updated = NOW();
+        "#,
+        nr_mat,
+        payload.first,
+        payload.second
+    )
+    .execute(&state.postgres)
+    .await?;
+
+    Ok(Redirect::to("/pick"))
 }

@@ -8,17 +8,15 @@
 - [x] Implement student auth
 - [x] Basic Logging
 - [x] Add db with sample data
-- [ ] Choices CRUD
+- [x] Choices CRUD
+- [ ] Make the student not able to pick a class from their own faculty
 - [ ] Check using the old_choices that the user didn't already choose this class already in the past
 - [ ] Let admins export to csv, move choices to old_choices 
-- [ ] Make the student not able to pick a class from their own faculty
 - [ ] Move to UVT UMS auth
 - [ ] Change configuration to be less verbose, example -> https://www.thorsten-hans.com/working-with-environment-variables-in-rust/
-- [ ] Requirements are optional, when creating a class, deserialize empty string in requirements as None
 
 # DCT Frontend
 - [x] List classes frontend with filters for semesters, faculties, it should be similar to a "listview"
-- [ ] Pick classes, ask for nr matricol
 - [ ] Admin panel
 - [ ] UI for export csv
 - [x] FE for CRUD Faculties, classes
