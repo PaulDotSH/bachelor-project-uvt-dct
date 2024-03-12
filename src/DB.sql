@@ -77,3 +77,4 @@ CREATE TABLE IF NOT EXISTS old_choices
     choice Serial NOT NULL references classes (id)
 );
 
+CREATE index on old_choices using hash (nr_mat);

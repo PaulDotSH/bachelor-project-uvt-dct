@@ -76,3 +76,17 @@ VALUES('114', 'gela.blonda@e-uvt.ro', '712', '', '2024-03-18 08:10:12.703', 3);
 INSERT INTO public.students
 (nr_mat, email, cnp3, "token", tok_expire, faculty)
 VALUES('115', 'jasmine.popa@e-uvt.ro', '152', '', '2024-03-18 08:12:44.115', 3);
+
+INSERT INTO public.choices
+(nr_mat, first_choice, second_choice, created, updated)
+VALUES('IA2', 5, 2, '2024-03-11 22:21:54.486', '2024-03-12 09:46:08.879');
+INSERT INTO public.choices
+(nr_mat, first_choice, second_choice, created, updated)
+VALUES('IA3', 4, 2, '2024-03-12 09:48:00.074', NULL);
+INSERT INTO public.choices
+(nr_mat, first_choice, second_choice, created, updated)
+VALUES('IA4', 3, 9, '2024-03-12 09:48:11.540', NULL);
+INSERT INTO public.choices
+(nr_mat, first_choice, second_choice, created, updated)
+VALUES('IA1', 3, 2, '2024-03-12 09:49:15.274', '2024-03-12 09:49:17.535');
+

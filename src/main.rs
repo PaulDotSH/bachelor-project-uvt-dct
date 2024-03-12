@@ -105,6 +105,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         )
         .route("/classes/new", get(endpoints::classes::create_class_fe))
         .route("/check_auth", get(authed_sample_response_handler))
+        .route("/export-csv", get(endpoints::administration::export_csv))
+        .route("/export-json", get(endpoints::administration::export_json))
+        .route("/move-choices", get(endpoints::administration::move_choices)) // TODO: Make this post and with a ui
         .layer(middleware::from_fn_with_state(
             state.clone(),
             endpoints::auth::auth_middleware::<axum::body::Body>,

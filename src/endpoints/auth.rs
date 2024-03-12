@@ -34,6 +34,7 @@ struct Student {
     nr_mat: String,
     email: String,
     tok_expire: chrono::NaiveDateTime,
+    faculty: i32
 }
 
 pub async fn permissive_middleware<B>(
@@ -107,7 +108,7 @@ pub async fn student_middleware<B>(
 
             let Ok(student) = sqlx::query_as!(
                 Student,
-                "SELECT nr_mat, email, tok_expire FROM students WHERE token = $1",
+                "SELECT nr_mat, email, tok_expire, faculty FROM students WHERE token = $1",
                 token
             )
             .fetch_one(&state.postgres)
@@ -123,6 +124,7 @@ pub async fn student_middleware<B>(
             ok = true;
             headers.insert("nr_mat", HeaderValue::from_str(&student.nr_mat).unwrap());
             headers.insert("email", HeaderValue::from_str(&student.email).unwrap());
+            headers.insert("faculty", HeaderValue::from_str(&student.faculty.to_string()).unwrap());
         }
     }
 

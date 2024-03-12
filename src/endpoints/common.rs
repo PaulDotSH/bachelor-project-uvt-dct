@@ -4,12 +4,12 @@ use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
 use async_trait::async_trait;
-use axum::extract::{Form, FromRequest, rejection::FormRejection, Request};
+use axum::extract::{rejection::FormRejection, Form, FromRequest, Request};
 use axum::http::HeaderMap;
 use rand::distributions::{Alphanumeric, DistString};
 use rand::thread_rng;
-use serde::{Deserialize, Deserializer, Serialize};
 use serde::de::DeserializeOwned;
+use serde::{Deserialize, Deserializer, Serialize};
 use validator::Validate;
 
 use crate::error::AppError;
@@ -71,42 +71,48 @@ pub fn generate_token(length: usize) -> String {
 
 #[inline(always)]
 pub fn get_username_from_header_unchecked(headers: &HeaderMap) -> &str {
-    let id = headers.get("id").expect("Header \"id\" doesn't exist");
-    id.to_str()
+    headers
+        .get("id")
+        .expect("Header \"id\" doesn't exist")
+        .to_str()
         .expect("Header cannot be converted into a string")
 }
 
 #[inline(always)]
 pub fn get_nr_mat_from_header_unchecked(headers: &HeaderMap) -> &str {
-    let id = headers
+    headers
         .get("nr_mat")
-        .expect("Header \"nr_mat\" doesn't exist");
-    id.to_str()
+        .expect("Header \"nr_mat\" doesn't exist")
+        .to_str()
         .expect("Header cannot be converted into a string")
 }
 
 #[inline(always)]
 pub fn get_email_from_header_unchecked(headers: &HeaderMap) -> &str {
-    let id = headers
+    headers
         .get("email")
-        .expect("Header \"email\" doesn't exist");
-    id.to_str()
+        .expect("Header \"email\" doesn't exist")
+        .to_str()
+        .expect("Header cannot be converted into a string")
+}
+
+#[inline(always)]
+pub fn get_faculty_from_header_unchecked(headers: &HeaderMap) -> &str {
+    headers
+        .get("faculty")
+        .expect("Header \"faculty\" doesn't exist")
+        .to_str()
         .expect("Header cannot be converted into a string")
 }
 
 #[inline(always)]
 pub fn get_username_from_header(headers: &HeaderMap) -> Option<&str> {
-    let id = headers.get("id");
-    if id.is_none() {
-        return None;
-    }
-    id.unwrap().to_str().ok()
+    headers.get("id").and_then(|id| id.to_str().ok())
 }
 
 #[inline(always)]
 pub fn is_admin_from_headers(headers: &HeaderMap) -> bool {
-    let id = headers.get("id");
-    id.is_some()
+    headers.get("id").is_some()
 }
 
 #[derive(Debug, Clone, Copy, Default)]

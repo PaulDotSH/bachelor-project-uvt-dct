@@ -4,3 +4,4 @@ pub mod classes;
 pub mod classes_files;
 mod common;
 pub mod faculties;
+pub mod administration;

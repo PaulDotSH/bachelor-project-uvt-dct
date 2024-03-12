@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use axum::extract::State;
 use axum::Form;
 use axum::http::HeaderMap;
@@ -5,11 +6,12 @@ use axum::response::{Html, Redirect};
 use chrono::NaiveDateTime;
 use sailfish::TemplateOnce;
 use serde::{Deserialize, Serialize};
-use sqlx::{query, query_as};
+use sqlx::{query, query_as, query_scalar};
 use validator::Validate;
 
 use crate::AppState;
 use crate::collect_with_capacity::*;
+use crate::constants::*;
 use crate::endpoints::common::*;
 use crate::error::AppError;
 
@@ -35,6 +37,7 @@ struct PickChoiceTemplate<'a> {
     choices: Option<StudentChoice>,
 }
 
+//TODO: Maybe don't even display classes the user already attended (old-choices)
 pub async fn pick_fe(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -109,9 +112,25 @@ pub async fn pick(
     headers: HeaderMap,
     Form(payload): Form<Choice>,
 ) -> Result<Redirect, AppError> {
-    //TODO: Check if the user selected a class from it's faculty
-
     let nr_mat = get_nr_mat_from_header_unchecked(&headers);
+
+    let faculty = get_faculty_from_header_unchecked(&headers).parse::<i32>().unwrap(); // Set internally, cannot fail
+
+    // We do not show the user its own faculty but in case they are smart enough to modify the request this still won't work
+    if payload.second == faculty || payload.second == faculty {
+        return Err(AppError(anyhow!(PICKED_CLASS_FROM_OWN_FACULTY)))
+    }
+
+    let old_choices: Vec<i32> = query_scalar!(
+        r#"
+        SELECT choice FROM old_choices WHERE nr_mat = $1;
+        "#,
+        nr_mat
+    ).fetch_all(&state.postgres).await?;
+
+    if old_choices.iter().any(|&choice| choice == payload.first || choice == payload.second) {
+        return Err(AppError(anyhow!("You have already attended this class in a previous year")));
+    }
 
     query!(
         r#"
