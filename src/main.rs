@@ -39,7 +39,7 @@ async fn create_default_account(pool: &Pool<Postgres>) {
     let salt = SaltString::generate(&mut OsRng);
     let password = Argon2::default()
         .hash_password(
-            &env::var("DEFAULT_ADMIN_PASSWORD")
+            env::var("DEFAULT_ADMIN_PASSWORD")
                 .expect(BAD_DOT_ENV)
                 .as_bytes(),
             &salt,
@@ -66,7 +66,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let pool = PgPoolOptions::new()
         .max_connections(
-            (&env::var("MAX_DB_POOL_CONNECTIONS").expect(BAD_DOT_ENV))
+            (env::var("MAX_DB_POOL_CONNECTIONS").expect(BAD_DOT_ENV))
                 .parse()
                 .unwrap(),
         )
@@ -78,11 +78,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let state = AppState { postgres: pool }; //TODO: Maybe add redis here for caching queries
 
     // Strictly for admins
-    let admin_auth = Router::new()
-        .route(
-            "/faculty/:id/edit",
-            get(endpoints::faculties::update_faculty_fe),
-        )
+        let admin_auth = Router::new()
+            .route(
+                "/faculty/:id/edit",
+                get(endpoints::faculties::update_faculty_fe),
+            )
         .route(
             "/faculty/:id/edit",
             post(endpoints::faculties::update_faculty),
@@ -114,7 +114,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         ) // TODO: Make this post and with a ui
         .layer(middleware::from_fn_with_state(
             state.clone(),
-            endpoints::auth::auth_middleware::<axum::body::Body>,
+            endpoints::auth::auth_middleware,
         ))
         .layer(TraceLayer::new_for_http());
 
@@ -132,7 +132,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/classes", get(endpoints::classes::filter_fe))
         .layer(middleware::from_fn_with_state(
             state.clone(),
-            endpoints::auth::permissive_middleware::<axum::body::Body>,
+            endpoints::auth::permissive_middleware,
         ));
 
     // For endpoints that don't care if the user is authed or not
@@ -144,12 +144,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/login", post(endpoints::auth::student_login_handler));
 
     let student_auth = Router::new()
-        .route("/pick", get(endpoints::choices::pick_fe))
-        .route("/pick", post(endpoints::choices::pick))
+        .route(STUDENT_PICK_ENDPOINT, get(endpoints::choices::pick_fe))
+        .route(STUDENT_PICK_ENDPOINT, post(endpoints::choices::pick))
         .route("/student-auth", get(sample_response_handler))
         .layer(middleware::from_fn_with_state(
             state.clone(),
-            endpoints::auth::student_middleware::<axum::body::Body>,
+            endpoints::auth::student_middleware,
         ));
 
     let app = Router::new()
@@ -173,3 +173,5 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+

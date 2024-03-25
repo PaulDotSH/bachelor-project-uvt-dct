@@ -37,7 +37,7 @@ struct Student {
     faculty: i32,
 }
 
-pub async fn permissive_middleware<B>(
+pub async fn permissive_middleware(
     State(state): State<AppState>,
     mut request: Request<Body>, // insert the username and role headers in the following requests in case they are needed so we don't hit the database again
     next: Next,                 // So we can forward the request
@@ -56,7 +56,7 @@ pub async fn permissive_middleware<B>(
 
     for pair in cookie_pairs {
         if let Some(token) = pair.trim().strip_prefix("TOKEN=") {
-            if token.len() < 1 {
+            if token.is_empty() {
                 return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid token").into_response();
             }
 
@@ -82,7 +82,7 @@ pub async fn permissive_middleware<B>(
     next.run(request).await
 }
 
-pub async fn student_middleware<B>(
+pub async fn student_middleware(
     State(state): State<AppState>,
     mut request: Request<Body>,
     next: Next,
@@ -102,7 +102,7 @@ pub async fn student_middleware<B>(
     let mut ok = false;
     for pair in cookie_pairs {
         if let Some(token) = pair.trim().strip_prefix("STOKEN=") {
-            if token.len() < 1 {
+            if token.is_empty() {
                 return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid token").into_response();
             }
 
@@ -138,7 +138,7 @@ pub async fn student_middleware<B>(
     next.run(request).await
 }
 
-pub async fn auth_middleware<B>(
+pub async fn auth_middleware(
     State(state): State<AppState>,
     mut request: Request<Body>, // insert the username and role headers in the following requests in case they are needed so we don't hit the database again
     next: Next,                 // So we can forward the request
@@ -158,7 +158,7 @@ pub async fn auth_middleware<B>(
     let mut ok = false;
     for pair in cookie_pairs {
         if let Some(token) = pair.trim().strip_prefix("TOKEN=") {
-            if token.len() < 1 {
+            if token.is_empty() {
                 return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid token").into_response();
             }
             let Ok(user) = sqlx::query_as!(

@@ -4,6 +4,7 @@ use axum::response::Redirect;
 use sqlx::{query, query_scalar};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
+use crate::constants::*;
 
 use crate::error::AppError;
 use crate::AppState;
@@ -32,7 +33,7 @@ pub async fn delete(
     .execute(&mut *transaction)
     .await?;
 
-    let file_path = format!("./assets/classes/{}", file_name);
+    let file_path = format!("{ASSETS_CLASSES_LOCAL_PATH}/{file_name}");
     tokio::fs::remove_file(&file_path).await?;
     transaction.commit().await?;
 
@@ -46,7 +47,7 @@ pub async fn upload(
 ) -> Result<Redirect, AppError> {
     while let Some(field) = multipart.next_field().await.unwrap() {
         let file_name = field.file_name().unwrap().to_string();
-        let file_path = format!("./assets/classes/{}", file_name);
+        let file_path = format!("{ASSETS_CLASSES_LOCAL_PATH}/{file_name}");
         let mut file = File::create(&file_path).await?;
 
         let data = field.bytes().await.unwrap();

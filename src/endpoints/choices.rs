@@ -119,7 +119,7 @@ pub async fn pick(
         .unwrap(); // Set internally, cannot fail
 
     // We do not show the user its own faculty but in case they are smart enough to modify the request this still won't work
-    if payload.second == faculty || payload.second == faculty {
+    if payload.first == faculty || payload.second == faculty {
         return Err(AppError(anyhow!(PICKED_CLASS_FROM_OWN_FACULTY)));
     }
 
@@ -157,5 +157,5 @@ pub async fn pick(
     .execute(&state.postgres)
     .await?;
 
-    Ok(Redirect::to("/pick"))
+    Ok(Redirect::to(STUDENT_PICK_ENDPOINT))
 }

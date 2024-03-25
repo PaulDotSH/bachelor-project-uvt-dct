@@ -7,7 +7,7 @@ use crate::error::AppError;
 use crate::AppState;
 
 async fn export_choices(pool: &Pool<Postgres>) -> Result<Vec<UserChoices>, sqlx::Error> {
-    Ok(query_as!(
+    query_as!(
         UserChoices,
         r#"
         SELECT
@@ -27,7 +27,7 @@ JOIN
         "#
     )
     .fetch_all(pool)
-    .await?)
+    .await
 }
 
 #[derive(Serialize, Deserialize, Debug)]
