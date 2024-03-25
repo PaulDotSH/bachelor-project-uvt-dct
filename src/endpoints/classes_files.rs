@@ -48,6 +48,7 @@ pub async fn upload(
     while let Some(field) = multipart.next_field().await.unwrap() {
         let file_name = field.file_name().unwrap().to_string();
         let file_path = format!("{ASSETS_CLASSES_LOCAL_PATH}/{file_name}");
+
         let mut file = File::create(&file_path).await?;
 
         let data = field.bytes().await.unwrap();

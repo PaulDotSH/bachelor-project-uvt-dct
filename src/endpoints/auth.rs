@@ -37,6 +37,8 @@ struct Student {
     faculty: i32,
 }
 
+// TODO: Refactor and clean duplicate code
+
 pub async fn permissive_middleware(
     State(state): State<AppState>,
     mut request: Request<Body>, // insert the username and role headers in the following requests in case they are needed so we don't hit the database again
@@ -57,7 +59,7 @@ pub async fn permissive_middleware(
     for pair in cookie_pairs {
         if let Some(token) = pair.trim().strip_prefix("TOKEN=") {
             if token.is_empty() {
-                return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid token").into_response();
+                return (StatusCode::INTERNAL_SERVER_ERROR, INVALID_TOKEN).into_response();
             }
 
             let Ok(user) = sqlx::query_as!(
@@ -159,7 +161,7 @@ pub async fn auth_middleware(
     for pair in cookie_pairs {
         if let Some(token) = pair.trim().strip_prefix("TOKEN=") {
             if token.is_empty() {
-                return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid token").into_response();
+                return (StatusCode::INTERNAL_SERVER_ERROR, INVALID_TOKEN).into_response();
             }
             let Ok(user) = sqlx::query_as!(
                 User,
@@ -169,7 +171,7 @@ pub async fn auth_middleware(
             .fetch_one(&state.postgres)
             .await
             else {
-                return (StatusCode::INTERNAL_SERVER_ERROR, "Invalid token").into_response();
+                return (StatusCode::INTERNAL_SERVER_ERROR, INVALID_TOKEN).into_response();
             };
 
             if user.tok_expire < Utc::now().naive_utc() {

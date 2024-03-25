@@ -8,6 +8,7 @@ pub const INVALID_STUDENT_DETAILS: &str = "Incorrect nr_mat, email or cnp";
 pub const PICKED_CLASS_FROM_OWN_FACULTY: &str =
     "You cannot pick a class from your own faculty";
 pub const BAD_DOT_ENV: &str = "Missing variable in .env file";
+pub const INVALID_TOKEN: &str = "Invalid token";
 // Variables
 pub const TOKEN_EXPIRE_TIME: TimeDelta = Duration::days(7);
 pub const MAX_CLASS_FILE_SIZE: usize = 12 * 1024 * 1024; //12MB

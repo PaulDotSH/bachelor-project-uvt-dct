@@ -8,13 +8,12 @@
         <input type="text" id="name" name="name" placeholder="Class name" value="<%= class.name %>" required></div>
 
         <label>Choose a faculty:</label>
-        <% include!("component_faculty_select.stpl"); %>
+        <% include!("./components/faculty_select.stpl"); %>
         <input type="text" id="descr" name="descr" placeholder="Description" value="<%= class.descr %>" required></div>
-        <% /* TODO Set default value depending on what is set by the current struct */ %>
         <select name="semester" id="semester" required>
             <% if class.semester == Semester::First { %>
-                <option selected value=First>First</option>
-                <option value=Second>Second</option>
+                <option <% if class.semester == Semester::First { %> selected <% } %> value=First>First</option>
+                <option <% if class.semester == Semester::Second { %> selected <% } %> value=Second>Second</option>
             <% } else { %>
                 <option value=First>First</option>
                 <option selected value=Second>Second</option>
@@ -32,6 +31,6 @@
         <input type="submit" value="Upload Files">
     </form>
 
-    <% include!("files.stpl"); %>
+    <% include!("./components/files.stpl"); %>
 </body>
 </html>

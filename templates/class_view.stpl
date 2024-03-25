@@ -4,8 +4,8 @@
   <% include!("header.stpl"); %>
 </head>
 <body>
-        <% include!("class.stpl"); %>
+        <% include!("./components/class.stpl"); %>
 
-        <% include!("files.stpl"); %>
+        <% include!("./components/files.stpl"); %>
 </body>
 </html>
