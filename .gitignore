@@ -2,4 +2,4 @@
 .env
 Cargo.lock
 .idea/
-/assets/classets
+/assets/classes/*
