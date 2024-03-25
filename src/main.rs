@@ -14,7 +14,7 @@ use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::constants::BAD_DOT_ENV;
+use crate::constants::*;
 
 pub mod collect_with_capacity;
 mod constant_parse;
@@ -104,10 +104,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
             get(endpoints::classes::update_class_fe),
         )
         .route("/classes/new", get(endpoints::classes::create_class_fe))
+        .route("/files/:id/delete", post(endpoints::classes_files::delete))
         .route("/check_auth", get(authed_sample_response_handler))
         .route("/export-csv", get(endpoints::administration::export_csv))
         .route("/export-json", get(endpoints::administration::export_json))
-        .route("/move-choices", get(endpoints::administration::move_choices)) // TODO: Make this post and with a ui
+        .route(
+            "/move-choices",
+            get(endpoints::administration::move_choices),
+        ) // TODO: Make this post and with a ui
         .layer(middleware::from_fn_with_state(
             state.clone(),
             endpoints::auth::auth_middleware::<axum::body::Body>,
@@ -119,7 +123,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             "/classes/:id/upload",
             post(endpoints::classes_files::upload),
         )
-        .layer(DefaultBodyLimit::max(12 * 1024 * 1024)); //12MB
+        .layer(DefaultBodyLimit::max(MAX_CLASS_FILE_SIZE));
 
     // For endpoints that have differences when the user is authed or the user isn't authed
     let auth_differences = Router::new()

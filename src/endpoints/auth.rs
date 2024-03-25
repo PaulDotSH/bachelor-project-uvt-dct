@@ -2,18 +2,18 @@ use anyhow::anyhow;
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use axum::body::Body;
 use axum::extract::State;
-use axum::Form;
 use axum::http::{header, HeaderMap, HeaderValue, Request, StatusCode};
 use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Response};
+use axum::Form;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::query_scalar;
 
-use crate::AppState;
 use crate::constants::*;
 use crate::endpoints::common::generate_token;
 use crate::error::AppError;
+use crate::AppState;
 
 pub async fn admin_login_fe() -> Html<&'static str> {
     Html::from(ADMIN_LOGIN_HTML)
@@ -34,7 +34,7 @@ struct Student {
     nr_mat: String,
     email: String,
     tok_expire: chrono::NaiveDateTime,
-    faculty: i32
+    faculty: i32,
 }
 
 pub async fn permissive_middleware<B>(
@@ -114,7 +114,7 @@ pub async fn student_middleware<B>(
             .fetch_one(&state.postgres)
             .await
             else {
-                return next.run(request).await;
+                return StatusCode::UNAUTHORIZED.into_response();
             };
 
             if student.tok_expire < Utc::now().naive_utc() {
@@ -124,7 +124,10 @@ pub async fn student_middleware<B>(
             ok = true;
             headers.insert("nr_mat", HeaderValue::from_str(&student.nr_mat).unwrap());
             headers.insert("email", HeaderValue::from_str(&student.email).unwrap());
-            headers.insert("faculty", HeaderValue::from_str(&student.faculty.to_string()).unwrap());
+            headers.insert(
+                "faculty",
+                HeaderValue::from_str(&student.faculty.to_string()).unwrap(),
+            );
         }
     }
 

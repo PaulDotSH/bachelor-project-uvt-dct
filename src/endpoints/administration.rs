@@ -66,19 +66,17 @@ pub async fn move_choices(State(state): State<AppState>) -> Result<(), AppError>
         "INSERT INTO old_choices (nr_mat, choice)
          SELECT nr_mat, first_choice FROM choices"
     )
-        .execute(&mut *transaction)
-        .await?;
+    .execute(&mut *transaction)
+    .await?;
 
     sqlx::query!(
         "INSERT INTO old_choices (nr_mat, choice)
          SELECT nr_mat, second_choice FROM choices"
     )
-        .execute(&mut *transaction)
-        .await?;
+    .execute(&mut *transaction)
+    .await?;
 
-    sqlx::query!(
-        "DELETE FROM choices"
-    )
+    sqlx::query!("DELETE FROM choices")
         .execute(&mut *transaction)
         .await?;
 

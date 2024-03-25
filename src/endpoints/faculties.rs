@@ -6,9 +6,9 @@ use serde::Deserialize;
 use sqlx::{query, query_as};
 use validator::Validate;
 
-use crate::AppState;
 use crate::endpoints::common::*;
 use crate::error::AppError;
+use crate::AppState;
 
 pub async fn create_faculty_fe() -> Result<Html<String>, AppError> {
     let ctx = CreateFacultyTemplate {};

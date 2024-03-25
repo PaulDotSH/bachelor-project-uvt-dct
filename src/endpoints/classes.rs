@@ -6,9 +6,9 @@ use serde::Deserialize;
 use sqlx::{query, query_as, query_scalar};
 use validator::Validate;
 
-use crate::AppState;
 use crate::endpoints::common::*;
 use crate::error::AppError;
+use crate::AppState;
 
 #[derive(Deserialize, Validate)]
 pub struct NewClass {
