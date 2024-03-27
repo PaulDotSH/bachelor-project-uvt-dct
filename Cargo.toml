@@ -36,7 +36,6 @@ strip = true
 [profile.production]
 inherits = "release"
 lto = true
-opt-level = 3
-codegen-units = 2
+codegen-units = 1
 strip = true
 overflow-checks = false
