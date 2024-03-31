@@ -9,6 +9,7 @@ use validator::Validate;
 use crate::endpoints::common::*;
 use crate::error::AppError;
 use crate::AppState;
+use crate::constants::CLASSES_ENDPOINT;
 
 #[derive(Deserialize, Validate)]
 pub struct NewClass {
@@ -25,7 +26,7 @@ pub struct NewClass {
 }
 
 #[derive(TemplateOnce)]
-#[template(path = "class_create.stpl")]
+#[template(path = "./classes/create.stpl")]
 struct CreateClassTemplate {
     faculties: Vec<Faculty>,
 }
@@ -64,11 +65,11 @@ pub async fn create_class(
         .fetch_one(&state.postgres)
         .await?;
 
-    Ok(Redirect::to(format!("/classes/{}", id).as_str()))
+    Ok(Redirect::to(format!("{}/{}", CLASSES_ENDPOINT, id).as_str()))
 }
 
 #[derive(TemplateOnce)]
-#[template(path = "class_view.stpl")]
+#[template(path = "./classes/view.stpl")]
 struct ViewClassTemplate {
     class: Class,
     files: Vec<ClassFile>,
@@ -136,7 +137,7 @@ pub async fn delete_class(
     .execute(&state.postgres)
     .await?;
 
-    Ok(Redirect::to("/classes"))
+    Ok(Redirect::to(CLASSES_ENDPOINT))
 }
 
 // This isn't "duplicate" code, I chose this approach to have the flexibility of having different fields compared to
@@ -175,11 +176,11 @@ pub async fn update_class(
         .execute(&state.postgres)
         .await?;
 
-    Ok(Redirect::to("/classes"))
+    Ok(Redirect::to(CLASSES_ENDPOINT))
 }
 
 #[derive(TemplateOnce)]
-#[template(path = "class_edit.stpl")]
+#[template(path = "classes/edit.stpl")]
 struct EditClassTemplate {
     class: Class,
     faculties: Vec<Faculty>,
@@ -247,7 +248,7 @@ pub async fn update_class_fe(
 }
 
 #[derive(TemplateOnce)]
-#[template(path = "classes_filter.stpl")]
+#[template(path = "./classes/filter.stpl")]
 struct FilterClassesTemplate {
     classes: Vec<Class>,
     filter: Filter,

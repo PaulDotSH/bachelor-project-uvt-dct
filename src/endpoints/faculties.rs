@@ -61,13 +61,13 @@ pub struct UpdatedFaculty {
 }
 
 #[derive(TemplateOnce)]
-#[template(path = "faculty_edit.stpl")]
+#[template(path = "./faculties/edit.stpl")]
 struct EditFacultyTemplate {
     faculty: Faculty,
 }
 
 #[derive(TemplateOnce)]
-#[template(path = "faculty_create.stpl")]
+#[template(path = "./faculties/create.stpl")]
 struct CreateFacultyTemplate {}
 
 pub async fn update_faculty_fe(
@@ -108,7 +108,7 @@ pub async fn update_faculty(
 }
 
 #[derive(TemplateOnce)]
-#[template(path = "faculties.stpl")]
+#[template(path = "./faculties/faculties.stpl")]
 struct ViewFacultiesTemplate {
     faculties: Vec<Faculty>,
     is_admin: bool,

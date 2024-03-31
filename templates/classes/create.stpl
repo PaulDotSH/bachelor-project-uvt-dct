@@ -1,14 +1,15 @@
+<% use crate::constants::*; %>
 <!DOCTYPE html>
 <html>
 <head>
-  <% include!("header.stpl"); %>
+  <% include!("../header.stpl"); %>
 </head>
 <body>
-    <form action="/classes/new" method="POST">
+    <form action="<%- CLASSES_ENDPOINT %>/<%- KEYWORD_CREATE_ENDPOINT %>" method="POST">
         <input type="text" id="name" name="name" placeholder="Class name" required></div>
 
         <label>Choose a faculty:</label>
-        <% include!("./components/faculty_select.stpl"); %>
+        <% include!("../components/faculty_select.stpl"); %>
         <input type="text" id="descr" name="descr" placeholder="Description" required></div>
         <select name="semester" id="semester" required>
             <option default value=First>First</option>

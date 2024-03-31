@@ -18,6 +18,8 @@ use crate::constants::*; %>
     <a href="<%- EXPORT_CSV_ENDPOINT %>"> <button> Export student data (CSV) </button> </a>
     <a href="<%- EXPORT_JSON_ENDPOINT %>"> <button> Export student data (JSON) </button> </a>
     <a href="<%- MOVE_CHOICES_ENDPOINT %>"> <button> Move student data (!!!) </button> </a>
+    <a href="<%- CLASSES_ENDPOINT %>/<%- KEYWORD_CREATE_ENDPOINT %>"> <button> New class </button> </a>
+    <a href="<%- FACULTIES_ENDPOINT %>/<%- KEYWORD_CREATE_ENDPOINT %>"> <button> New faculty </button> </a>
 <% } else if auth_type == AuthUserType::Student { %>
     <a href="<%- STUDENT_PICK_ENDPOINT %>"> <button> Pick Class </button> </a>
 <% } %>

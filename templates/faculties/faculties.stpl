@@ -1,23 +1,24 @@
+<% use crate::constants::*; %>
 <!DOCTYPE html>
 <html>
 <head>
-  <% include!("header.stpl"); %>
+  <% include!("../header.stpl"); %>
 </head>
 <body>
     <ul>
         <% for f in &faculties { %>
           <a href="/classes?faculty=<%= f.id %>">
             <div><%= f.name %></div>
+          </a>
             <% if is_admin { %>
-                <form action="/faculty/<%- f.id %>/delete" method="POST">
+                <form action="<%- FACULTIES_ENDPOINT %>/<%- f.id %>/<%- KEYWORD_REMOVE_ENDPOINT %>" method="POST">
                     <input type="submit" value="Delete" />
                 </form>
-                <form action="/faculty/<%- f.id %>/edit" method="GET">
-                    <input type="submit" value="Edit" />
-                </form>
+                <a href="<%- FACULTIES_ENDPOINT %>/<%- f.id %>/<%- KEYWORD_MODIFY_ENDPOINT %>"> <input type="submit" value="Edit" /> </a>
             <% } %>
             <br>
-          </a>
+            <br>
+            <br>
         <% } %>
     </ul>
 </body>

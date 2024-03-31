@@ -1,3 +1,5 @@
+<% use crate::constants::*; %>
+
 <div>Name: <%= class.name %></div>
 <div>Description: <%= class.descr %></div>
 <div>Faculty ID: <%- class.faculty %></div>
@@ -8,10 +10,10 @@
 <div>Prof: <%- class.prof %></div>
 
 <% if is_admin { %>
-    <form action="/classes/<%- class.id %>/delete" method="POST">
+    <form action="<%- CLASSES_ENDPOINT %>/<%- class.id %>/<%- KEYWORD_REMOVE_ENDPOINT %>" method="POST">
         <input type="submit" value="Delete" />
     </form>
-    <form action="/classes/<%- class.id %>/edit" method="GET">
+    <form action="<%- CLASSES_ENDPOINT %>/<%- class.id %>/<%- KEYWORD_MODIFY_ENDPOINT %>" method="GET">
         <input type="submit" value="Edit" />
     </form>
     <br>

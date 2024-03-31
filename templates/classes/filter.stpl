@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <% include!("header.stpl"); %>
+  <% include!("../header.stpl"); %>
 </head>
 <body>
     <form action="" method="GET">
@@ -27,7 +27,7 @@
         <input type="submit" value="Search"/>
     </form>
     <% for class in classes { %>
-        <% include!("./components/class.stpl"); %>
+        <% include!("../components/class.stpl"); %>
         <hr>
     <% } %>
 </body>

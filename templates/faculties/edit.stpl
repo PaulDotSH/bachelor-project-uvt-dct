@@ -1,10 +1,11 @@
+<% use crate::constants::*; %>
 <!DOCTYPE html>
 <html>
 <head>
-  <% include!("header.stpl"); %>
+  <% include!("../header.stpl"); %>
 </head>
 <body>
-    <form action="/faculty/<%- faculty.id %>/edit" method="POST">
+    <form action="<%- FACULTIES_ENDPOINT %>/<%- faculty.id %>/<%- KEYWORD_MODIFY_ENDPOINT %>" method="POST">
         <input type="text" id="name" name="name" value="<%= faculty.name %>" required></div>
         <input type="submit" value="Modify" />
     </form>

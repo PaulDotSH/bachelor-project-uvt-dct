@@ -1,14 +1,15 @@
+<% use crate::constants::*; %>
 <!DOCTYPE html>
 <html>
 <head>
-  <% include!("header.stpl"); %>
+  <% include!("../header.stpl"); %>
 </head>
 <body>
-    <form action="/classes/<%- class.id %>/edit" method="POST">
+    <form action="<%- CLASSES_ENDPOINT %>/<%- class.id %>/<%- KEYWORD_MODIFY_ENDPOINT %>" method="POST">
         <input type="text" id="name" name="name" placeholder="Class name" value="<%= class.name %>" required></div>
 
         <label>Choose a faculty:</label>
-        <% include!("./components/faculty_select.stpl"); %>
+        <% include!("../components/faculty_select.stpl"); %>
         <input type="text" id="descr" name="descr" placeholder="Description" value="<%= class.descr %>" required></div>
         <select name="semester" id="semester" required>
             <% if class.semester == Semester::First { %>
@@ -25,12 +26,12 @@
         <input type="submit" value="Edit"/>
     </form>
 
-    <form action="/classes/<%- class.id %>/upload" method="post" enctype="multipart/form-data">
+    <form action="<%- CLASSES_ENDPOINT %>/<%- class.id %>/upload" method="post" enctype="multipart/form-data">
         <label for="fileUpload">Select files to upload:</label>
         <input type="file" name="files[]" multiple>
         <input type="submit" value="Upload Files">
     </form>
 
-    <% let is_admin = true; include!("./components/files.stpl"); %>
+    <% let is_admin = true; include!("../components/files.stpl"); %>
 </body>
 </html>

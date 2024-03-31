@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include!("../header.stpl"); %>
+</head>
+<body>
+        <% include!("../components/class.stpl"); %>
+
+        <% include!("../components/files.stpl"); %>
+</body>
+</html>
