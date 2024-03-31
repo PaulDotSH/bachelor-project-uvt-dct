@@ -1,0 +1,28 @@
+<% use crate::endpoints::common::AuthUserType;
+use crate::constants::*; %>
+<!DOCTYPE html>
+<html>
+<head>
+    <% include!("header.stpl"); %>
+</head>
+<body>
+<% if auth_type == AuthUserType::Guest { %>
+    <div> Log in as a student to be able to pick the DCT classes you want </div>
+    <a href="/login"> <button> Login </button> </a>
+    <br>
+    <br>
+    <br>
+<% } %>
+
+<% if auth_type == AuthUserType::Admin { %>
+    <a href="<%- EXPORT_CSV_ENDPOINT %>"> <button> Export student data (CSV) </button> </a>
+    <a href="<%- EXPORT_JSON_ENDPOINT %>"> <button> Export student data (JSON) </button> </a>
+    <a href="<%- MOVE_CHOICES_ENDPOINT %>"> <button> Move student data (!!!) </button> </a>
+<% } else if auth_type == AuthUserType::Student { %>
+    <a href="<%- STUDENT_PICK_ENDPOINT %>"> <button> Pick Class </button> </a>
+<% } %>
+
+<a href="<%- CLASSES_ENDPOINT %>"> <button> See classes </button> </a>
+<a href="<%- FACULTIES_ENDPOINT %>"> <button> See faculties </button> </a>
+</body>
+</html>

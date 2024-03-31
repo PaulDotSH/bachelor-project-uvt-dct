@@ -5,7 +5,7 @@ use std::str::FromStr;
 
 use async_trait::async_trait;
 use axum::extract::{rejection::FormRejection, Form, FromRequest, Request};
-use axum::http::HeaderMap;
+use axum::http::{HeaderMap};
 use rand::distributions::{Alphanumeric, DistString};
 use rand::thread_rng;
 use serde::de::DeserializeOwned;
@@ -64,6 +64,13 @@ impl FromStr for Semester {
     }
 }
 
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum AuthUserType {
+    Guest,
+    Student,
+    Admin
+}
+
 #[inline(always)]
 pub fn generate_token(length: usize) -> String {
     Alphanumeric.sample_string(&mut thread_rng(), length)
@@ -111,8 +118,24 @@ pub fn get_username_from_header(headers: &HeaderMap) -> Option<&str> {
 }
 
 #[inline(always)]
+pub fn is_student_from_headers(headers: &HeaderMap) -> bool {
+    headers.get("nr_mat").is_some()
+}
+
+#[inline(always)]
 pub fn is_admin_from_headers(headers: &HeaderMap) -> bool {
     headers.get("id").is_some()
+}
+
+#[inline(always)]
+pub fn get_auth_type_from_headers(headers: &HeaderMap) -> AuthUserType {
+    if is_admin_from_headers(headers) {
+        return AuthUserType::Admin
+    }
+    if is_student_from_headers(headers) {
+        return AuthUserType::Student
+    }
+    AuthUserType::Guest
 }
 
 #[derive(Debug, Clone, Copy, Default)]

@@ -41,7 +41,7 @@ struct Student {
 
 pub async fn permissive_middleware(
     State(state): State<AppState>,
-    mut request: Request<Body>, // insert the username and role headers in the following requests in case they are needed so we don't hit the database again
+    mut request: Request<Body>, // insert the username and role headers in the following requests in case they are needed, so we don't hit the database again
     next: Next,                 // So we can forward the request
 ) -> Response {
     let headers = request.headers_mut();
@@ -78,6 +78,32 @@ pub async fn permissive_middleware(
             }
 
             headers.insert("id", HeaderValue::from_str(&user.username).unwrap());
+        } else if let Some(token) = pair.trim().strip_prefix("STOKEN=") {
+            if token.is_empty() {
+                return (StatusCode::INTERNAL_SERVER_ERROR, INVALID_TOKEN).into_response();
+            }
+
+            let Ok(student) = sqlx::query_as!(
+                Student,
+                "SELECT nr_mat, email, tok_expire, faculty FROM students WHERE token = $1",
+                token
+            )
+                .fetch_one(&state.postgres)
+                .await
+                else {
+                    return StatusCode::UNAUTHORIZED.into_response();
+                };
+
+            if student.tok_expire < Utc::now().naive_utc() {
+                return next.run(request).await;
+            }
+
+            headers.insert("nr_mat", HeaderValue::from_str(&student.nr_mat).unwrap());
+            headers.insert("email", HeaderValue::from_str(&student.email).unwrap());
+            headers.insert(
+                "faculty",
+                HeaderValue::from_str(&student.faculty.to_string()).unwrap(),
+            );
         }
     }
 

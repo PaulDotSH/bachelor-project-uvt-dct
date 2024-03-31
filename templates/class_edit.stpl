@@ -31,6 +31,6 @@
         <input type="submit" value="Upload Files">
     </form>
 
-    <% include!("./components/files.stpl"); %>
+    <% let is_admin = true; include!("./components/files.stpl"); %>
 </body>
 </html>

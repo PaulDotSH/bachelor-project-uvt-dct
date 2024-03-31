@@ -7,6 +7,7 @@ use argon2::{Argon2, PasswordHasher};
 use axum::extract::DefaultBodyLimit;
 use axum::routing::{get, post};
 use axum::{middleware, Router};
+use const_format::formatcp;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 use tokio::net::TcpListener;
@@ -27,13 +28,10 @@ pub struct AppState {
     postgres: Pool<Postgres>,
 }
 
-pub async fn sample_response_handler() -> String {
-    "Home page example response".to_string()
-}
+// TODO: Think about classes open and close mechanism
+// TODO: Check what requirements the current DCT system has (x faculty cannot pick classes from y faculty),
+// which faculties dont need students to pick a class which semester (example IA year 2 semester 1)
 
-pub async fn authed_sample_response_handler() -> String {
-    "Authed home page example response".to_string()
-}
 
 async fn create_default_account(pool: &Pool<Postgres>) {
     let salt = SaltString::generate(&mut OsRng);
@@ -80,36 +78,35 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Strictly for admins
         let admin_auth = Router::new()
             .route(
-                "/faculty/:id/edit",
+                formatcp!("{FACULTIES_ENDPOINT}/:id/{KEYWORD_MODIFY_ENDPOINT}"),
                 get(endpoints::faculties::update_faculty_fe),
             )
         .route(
-            "/faculty/:id/edit",
+            formatcp!("{FACULTIES_ENDPOINT}/:id/{KEYWORD_MODIFY_ENDPOINT}"),
             post(endpoints::faculties::update_faculty),
         )
         .route(
-            "/faculty/:id/delete",
+            formatcp!("{FACULTIES_ENDPOINT}/:id/{KEYWORD_REMOVE_ENDPOINT}"),
             post(endpoints::faculties::delete_faculty),
         )
-        .route("/faculty/new", post(endpoints::faculties::create_faculty))
-        .route("/faculty/new", get(endpoints::faculties::create_faculty_fe))
-        .route("/classes/new", post(endpoints::classes::create_class))
+        .route(formatcp!("{FACULTIES_ENDPOINT}/{KEYWORD_CREATE_ENDPOINT}"), post(endpoints::faculties::create_faculty))
+        .route(formatcp!("{FACULTIES_ENDPOINT}/{KEYWORD_CREATE_ENDPOINT}"), get(endpoints::faculties::create_faculty_fe))
+        .route(formatcp!("{CLASSES_ENDPOINT}/{KEYWORD_CREATE_ENDPOINT}"), post(endpoints::classes::create_class))
         .route(
-            "/classes/:id/delete",
+            formatcp!("{CLASSES_ENDPOINT}/:id/{KEYWORD_REMOVE_ENDPOINT}"),
             post(endpoints::classes::delete_class),
         )
-        .route("/classes/:id/edit", post(endpoints::classes::update_class))
+        .route(formatcp!("{CLASSES_ENDPOINT}/:id/{KEYWORD_MODIFY_ENDPOINT}"), post(endpoints::classes::update_class))
         .route(
-            "/classes/:id/edit",
+            formatcp!("{CLASSES_ENDPOINT}/:id/{KEYWORD_MODIFY_ENDPOINT}"),
             get(endpoints::classes::update_class_fe),
         )
-        .route("/classes/new", get(endpoints::classes::create_class_fe))
+        .route(formatcp!("{CLASSES_ENDPOINT}/{KEYWORD_CREATE_ENDPOINT}"), get(endpoints::classes::create_class_fe))
         .route("/files/:id/delete", post(endpoints::classes_files::delete))
-        .route("/check_auth", get(authed_sample_response_handler))
-        .route("/export-csv", get(endpoints::administration::export_csv))
-        .route("/export-json", get(endpoints::administration::export_json))
+        .route(EXPORT_CSV_ENDPOINT, get(endpoints::administration::export_csv))
+        .route(EXPORT_JSON_ENDPOINT, get(endpoints::administration::export_json))
         .route(
-            "/move-choices",
+            MOVE_CHOICES_ENDPOINT,
             get(endpoints::administration::move_choices),
         ) // TODO: Make this post and with a ui
         .layer(middleware::from_fn_with_state(
@@ -120,16 +117,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let uploader = Router::new()
         .route(
-            "/classes/:id/upload",
+            formatcp!("{CLASSES_ENDPOINT}/:id/{KEYWORD_UPLOAD_ENDPOINT}"),
             post(endpoints::classes_files::upload),
         )
         .layer(DefaultBodyLimit::max(MAX_CLASS_FILE_SIZE));
 
     // For endpoints that have differences when the user is authed or the user isn't authed
     let auth_differences = Router::new()
-        .route("/classes/:id", get(endpoints::classes::view_class_fe))
-        .route("/faculties", get(endpoints::faculties::view_faculties_fe))
-        .route("/classes", get(endpoints::classes::filter_fe))
+        .route("/", get(endpoints::index::index))
+        .route(formatcp!("{CLASSES_ENDPOINT}/:id"), get(endpoints::classes::view_class_fe))
+        .route(FACULTIES_ENDPOINT, get(endpoints::faculties::view_faculties_fe))
+        .route(CLASSES_ENDPOINT, get(endpoints::classes::filter_fe))
         .layer(middleware::from_fn_with_state(
             state.clone(),
             endpoints::auth::permissive_middleware,
@@ -137,7 +135,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // For endpoints that don't care if the user is authed or not
     let no_auth = Router::new()
-        .route("/", get(sample_response_handler))
         .route("/admin/login", get(endpoints::auth::admin_login_fe))
         .route("/admin/login", post(endpoints::auth::admin_login_handler))
         .route("/login", get(endpoints::auth::student_login_fe))
@@ -146,7 +143,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let student_auth = Router::new()
         .route(STUDENT_PICK_ENDPOINT, get(endpoints::choices::pick_fe))
         .route(STUDENT_PICK_ENDPOINT, post(endpoints::choices::pick))
-        .route("/student-auth", get(sample_response_handler))
         .layer(middleware::from_fn_with_state(
             state.clone(),
             endpoints::auth::student_middleware,

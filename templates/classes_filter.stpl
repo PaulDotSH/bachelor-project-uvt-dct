@@ -28,6 +28,7 @@
     </form>
     <% for class in classes { %>
         <% include!("./components/class.stpl"); %>
+        <hr>
     <% } %>
 </body>
 </html>

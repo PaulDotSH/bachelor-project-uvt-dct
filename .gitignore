@@ -1,5 +1,6 @@
 /target
 .env
+.env-dct
 Cargo.lock
 .idea/
 /assets/classes/*

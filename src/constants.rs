@@ -17,11 +17,18 @@ pub const TOKEN_LENGTH: usize = 128;
 // Static files
 pub const ADMIN_LOGIN_HTML: &str = include_str!("./static/admin-login.html");
 pub const STUDENT_LOGIN_HTML: &str = include_str!("./static/student-login.html");
-
 // Paths
 pub const ASSETS_CLASSES_PATH: &str = "/assets/classes";
 pub const ASSETS_CLASSES_LOCAL_PATH: &str = formatcp!(".{ASSETS_CLASSES_PATH}");
 
 // Endpoints
+pub const EXPORT_CSV_ENDPOINT: &str = "/export-csv";
+pub const EXPORT_JSON_ENDPOINT: &str = "/export-json";
+pub const MOVE_CHOICES_ENDPOINT: &str = "/move-choices";
 pub const STUDENT_PICK_ENDPOINT: &str = "/pick";
-
+pub const FACULTIES_ENDPOINT: &str = "/faculties";
+pub const CLASSES_ENDPOINT: &str = "/classes";
+pub const KEYWORD_CREATE_ENDPOINT: &str = "new";
+pub const KEYWORD_MODIFY_ENDPOINT: &str = "edit";
+pub const KEYWORD_REMOVE_ENDPOINT: &str = "delete";
+pub const KEYWORD_UPLOAD_ENDPOINT: &str = "upload";
