@@ -268,11 +268,18 @@ pub async fn admin_login_handler(
 
     let cookie = format!("TOKEN={}; Path=/; Max-Age=604800", &token);
 
-    let mut headers = HeaderMap::new();
-    headers.insert(header::SET_COOKIE, cookie.parse().unwrap());
+    let mut resp = Response::builder()
+        .status(StatusCode::SEE_OTHER)
+        .body(Body::empty())
+        .unwrap();
 
-    // TODO: Add redirect
-    Ok(headers.into_response())
+
+    let headers = resp.headers_mut();
+    headers.insert(header::SET_COOKIE, cookie.parse().unwrap());
+    headers.insert("location", "/".parse().unwrap());
+
+    
+    Ok(resp)
 }
 
 pub async fn student_login_handler(

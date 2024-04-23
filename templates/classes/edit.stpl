@@ -10,20 +10,15 @@
 
         <label>Choose a faculty:</label>
         <% include!("../components/faculty_select.stpl"); %>
-        <input type="text" id="descr" name="descr" placeholder="Description" value="<%= class.descr %>" required></div>
+        <textarea type="text" id="descr" name="descr" placeholder="Description" required><%= class.descr %></textarea></div>
         <select name="semester" id="semester" required>
-            <% if class.semester == Semester::First { %>
                 <option <% if class.semester == Semester::First { %> selected <% } %> value=First>First</option>
                 <option <% if class.semester == Semester::Second { %> selected <% } %> value=Second>Second</option>
-            <% } else { %>
-                <option value=First>First</option>
-                <option selected value=Second>Second</option>
-            <% }%>
         </select>
         <input type="text" id="requirements" name="requirements" placeholder="Requirements*" value="<%= class.requirements.unwrap_or("".to_owned()) %>"></div>
         <input type="text" id="prof" name="prof" placeholder="Professor" value="<%= class.prof %>" required></div>
 
-        <input type="submit" value="Edit"/>
+        <button type="submit" value="">Edit</button>
     </form>
 
     <form action="<%- CLASSES_ENDPOINT %>/<%- class.id %>/upload" method="post" enctype="multipart/form-data">

@@ -5,11 +5,12 @@
   <% include!("../header.stpl"); %>
 </head>
 <body>
-    <form action="<%- CLASSES_ENDPOINT %>/<%- KEYWORD_CREATE_ENDPOINT %>" method="POST">
+    <form class="create-class" action="<%- CLASSES_ENDPOINT %>/<%- KEYWORD_CREATE_ENDPOINT %>" method="POST">
         <input type="text" id="name" name="name" placeholder="Class name" required></div>
 
-        <label>Choose a faculty:</label>
-        <% include!("../components/faculty_select.stpl"); %>
+        <div>
+            <% include!("../components/faculty_select.stpl"); %>
+        </div>
         <input type="text" id="descr" name="descr" placeholder="Description" required></div>
         <select name="semester" id="semester" required>
             <option default value=First>First</option>

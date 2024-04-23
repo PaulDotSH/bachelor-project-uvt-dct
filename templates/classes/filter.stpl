@@ -5,30 +5,33 @@
 </head>
 <body>
     <form action="" method="GET">
-        <select name="semester" id="semester">
+        <select name="semester" id="semester" class="text-input">
             <% if let Some(semester) = filter.semester { %>
                 <option value="">Oricare</option>
-                <option <% if semester == Semester::First { %> selected <% } %> value=First>First</option>
-                <option <% if semester == Semester::Second { %> selected <% } %> value=Second>Second</option>
+                <option  <% if semester == Semester::First { %> selected <% } %> value=First>First</option>
+                <option  <% if semester == Semester::Second { %> selected <% } %> value=Second>Second</option>
             <% } else { %>
-                <option selected value="">Oricare</option>
-                <option value=First>First</option>
-                <option value=Second>Second</option>
+                <option  selected value="">Oricare</option>
+                <option  value=First>First</option>
+                <option  value=Second>Second</option>
             <% } %>
         </select>
 
-        <select name="faculty" id="faculty">
+        <select name="faculty" id="faculty" class="text-input">
             <option selected value="">Oricare</option>
             <% for faculty in faculties {%>
                 <option <% if filter.faculty.is_some_and(|id| id == faculty.id ) { %> selected <% } %> value=<%- faculty.id %>><%- faculty.name %></option>
             <% } %>
         </select>
 
-        <input type="submit" value="Search"/>
+        <button type="submit">Search</button>
     </form>
+
+
+    <div class="classes">
     <% for class in classes { %>
         <% include!("../components/class.stpl"); %>
-        <hr>
     <% } %>
+    </div>
 </body>
 </html>

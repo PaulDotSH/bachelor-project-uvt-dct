@@ -1,0 +1,250 @@
+:root {
+    --white: #ffffff;
+    --black: #2e2e2e;
+    --blue: #25639E;
+    --bg-blue: #0d5598;
+    --yellow: #E4AC22;
+    --light-yellow: #f0bf44;
+}
+
+
+body {
+    background-color: var(--black);
+    font-family: 'Roboto', sans-serif;
+    color: white;
+}
+
+
+.logo {
+    animation: focus-in-expand 0.8s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    color: var(--yellow);
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 2px;
+    font-size: 4rem;
+}
+
+/* - MAIN PAGE - */
+
+.redirect-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    margin: 10px auto;
+}
+
+
+.redirect-buttons > a {
+    width: 35%;
+    min-width: 250px;
+}
+
+
+.index-page-button {
+    line-height: 3.8rem !important;
+    white-space: normal !important;
+    height: auto !important;
+    width: 100%;
+    text-align: center;
+    background-color: var(--blue);
+    color: var(--white);
+    margin: 0 !important;
+    padding: 10px 35px !important;
+    border: 0;
+    transition: 0.2s;
+    font-size: 2rem;
+    font-weight: bolder;
+}
+
+.index-page-button:hover {
+    background-color: var(--yellow);
+    transition: 0.2s;
+}
+
+.redirect-buttons > a:nth-child(odd) > .index-page-button:hover {
+    transform: rotate(1deg);
+}
+
+.redirect-buttons > a:nth-child(even) > .index-page-button:hover {
+    transform: rotate(-1deg);
+}
+
+.create-class {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+/* - NEW FACULTY PAGE - */ 
+
+.form-title {
+    text-align: center;
+    color: var(--white);
+}
+
+.files {
+    font-size: 3rem;
+}
+
+select {
+    font-size: 30px;
+    padding: 20px 10px;
+    background-color: var(--blue);
+    border: 2px solid var(--blue);
+    transition: 0.2s;
+    width: 100%;
+    transition: 0.2s;
+    font-weight: 800;
+    color: white;
+}
+
+input {
+    width: auto !important;
+    font-size: 30px;
+    padding: 20px 10px;
+    background-color: var(--blue);
+    border: 2px solid var(--blue);
+    transition: 0.2s;
+    width: auto;
+    transition: 0.2s;
+    font-weight: 800;
+    color: white;
+}
+ 
+.faculty-name {
+    font-size: 30px;
+    color: var(--yellow);
+}
+
+#input:focus {
+    border: 2px solid var(--yellow);
+}
+
+#input:hover {
+    border: 2px solid var(--yellow);
+    transition: 0.2s;
+}
+
+#input::placeholder, .text-input {
+    color: var(--white);
+}
+
+.input-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+button {
+    text-align: center;
+    background-color: var(--blue);
+    color: var(--white);
+    margin: 0 auto !important;
+    border: 0;
+    transition: 0.2s;
+    font-size: 20px;
+    padding: 1.4rem;
+    font-weight: bold;
+}
+
+button:has(i) {
+    border: 2px solid var(--bg-blue);
+}
+
+button:hover {
+    background-color: var(--yellow);
+    transition: 0.2s;
+}
+
+.styled-form {
+    margin: 10px;
+    padding: 30px;
+    border: 3px solid var(--blue);
+    border-radius: 20px;
+    background-image: linear-gradient(to top right, rgba(11, 124, 230, 0.1), rgba(37, 100, 158, 0.3));
+}
+
+
+
+/* - CLASSES - */
+
+.classes {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+
+.class {
+    background-color: var(--blue);
+    border-radius: 20px;
+    padding: 20px 30px;
+    margin: 5px 20px;
+}
+
+.class-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.class-name {
+    color: var(--yellow);
+    font-weight: 600;
+    margin: 0 !important;
+    transition: 0.3s;
+}
+
+.class-info {
+    color: var(--white);
+    font-weight: 600;
+    margin: 0 !important;
+}
+
+.class-description {
+    color: rgb(237, 237, 237);
+    font-weight: normal;
+}
+
+
+.class-id {
+    font-weight: 700;
+    color: var(--white);
+    margin: 0 !important;
+}
+
+.class-buttons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 0 !important;
+}
+
+.class-button {
+    margin: 0 !important;
+}
+
+button i {
+    transition: transform 0.3s ease;
+}
+  
+button:hover i {
+    transform: scale(1.5);
+}
+
+.class-name:hover {
+    color: var(--light-yellow);
+    transition: 0.3s;
+}
+
+@keyframes focus-in-expand {
+    0% {
+      letter-spacing: -0.5em;
+      filter: blur(12px);
+      opacity: 0;
+    }
+    100% {
+      filter: blur(0px);
+      opacity: 1;
+    }
+  }

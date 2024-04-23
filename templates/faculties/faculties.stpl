@@ -8,17 +8,12 @@
     <ul>
         <% for f in &faculties { %>
           <a href="/classes?faculty=<%= f.id %>">
-            <div><%= f.name %></div>
+            <div class="faculty-name"><%= f.name %></div>
           </a>
             <% if is_admin { %>
-                <form action="<%- FACULTIES_ENDPOINT %>/<%- f.id %>/<%- KEYWORD_REMOVE_ENDPOINT %>" method="POST">
-                    <input type="submit" value="Delete" />
-                </form>
-                <a href="<%- FACULTIES_ENDPOINT %>/<%- f.id %>/<%- KEYWORD_MODIFY_ENDPOINT %>"> <input type="submit" value="Edit" /> </a>
+                <a href="<%- FACULTIES_ENDPOINT %>/<%- f.id %>/<%- KEYWORD_REMOVE_ENDPOINT %>"> <button type="submit"><i class="fa-solid fa-trash"></i></button> </a>
+                <a href="<%- FACULTIES_ENDPOINT %>/<%- f.id %>/<%- KEYWORD_MODIFY_ENDPOINT %>"> <button type="submit"><i class="fa-solid fa-edit"></i></button> </a>
             <% } %>
-            <br>
-            <br>
-            <br>
         <% } %>
     </ul>
 </body>

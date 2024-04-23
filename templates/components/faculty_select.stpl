@@ -1,4 +1,5 @@
         <select name="faculty" id="faculty" required>
+            <option disabled selected>Select a faculty:</option>
             <% for faculty in faculties {%>
                 <option value=<%- faculty.id %>><%- faculty.name %></option>
             <% } %>

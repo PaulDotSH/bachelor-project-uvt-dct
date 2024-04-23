@@ -1,12 +1,16 @@
 <%
 use crate::constants::*;
 %>
-<label>Files:</label>
-<% for file in files { %>
-    <div><a href="<%- ASSETS_CLASSES_PATH %>/<%= file.name %>"><%= file.name %></a></div>
-    <% if is_admin { %>
-        <form action="/files/<%- file.id %>/delete" method="POST">
-            <input type="submit" value="Delete file" />
-        </form>
-    <% } %>
+<% if !files.is_empty() { %>
 <% } %>
+<div class="files">
+    <label>Files:</label>
+    <% for file in files { %>
+        <div><a href="<%- ASSETS_CLASSES_PATH %>/<%= file.name %>"><%= file.name %></a></div>
+        <% if is_admin { %>
+            <form action="/files/<%- file.id %>/delete" method="POST">
+                <button type="submit">Delete file</button>
+            </form>
+        <% } %>
+    <% } %>
+</div>

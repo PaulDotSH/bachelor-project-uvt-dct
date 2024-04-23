@@ -4,9 +4,15 @@
   <% include!("../header.stpl"); %>
 </head>
 <body>
-    <form action="/faculty/new" method="POST">
-        <input type="text" id="name" name="name" placeholder="Faculty name" required></div>
-        <input type="submit" value="Create"/>
+    <h1 class="logo">DCT</h1>
+
+    <form action="/faculty/new" method="POST" class="stlyed-form">
+        <h2 class="form-title">Add a new faculty</h2>
+
+        <div class="input-wrapper">
+          <input type="text" id="name" name="name" placeholder="Faculty Name" class="text-input" required></div>
+          <button type="submit">Add</button>
+        </div>
     </form>
 </body>
 </html>

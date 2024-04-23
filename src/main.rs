@@ -58,9 +58,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     dotenvy::dotenv()?;
 
     // Added tracing, more advanced tracing should be done in nginx or whatever alternative used
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::fmt::layer())
-        .init();
+    // tracing_subscriber::registry()
+    //     .with(tracing_subscriber::fmt::layer())
+    //     .init();
 
     let pool = PgPoolOptions::new()
         .max_connections(
