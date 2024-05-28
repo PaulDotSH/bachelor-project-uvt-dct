@@ -3,10 +3,10 @@ use axum::extract::State;
 use axum::http::HeaderMap;
 use axum::response::{Html, Redirect};
 use axum::Form;
-use chrono::NaiveDateTime;
+use chrono::{FixedOffset, NaiveDateTime, Utc};
 use sailfish::TemplateOnce;
 use serde::{Deserialize, Serialize};
-use sqlx::{query, query_as, query_scalar};
+use sqlx::{query, query_as, query_scalar, Pool, Postgres};
 use validator::Validate;
 
 use crate::collect_with_capacity::*;
@@ -14,6 +14,8 @@ use crate::constants::*;
 use crate::endpoints::common::*;
 use crate::error::AppError;
 use crate::AppState;
+
+use super::open_close_date::StartEndDate;
 
 struct StudentChoice {
     first_choice: i32,
@@ -37,11 +39,37 @@ struct PickChoiceTemplate<'a> {
     choices: Option<StudentChoice>,
 }
 
+async fn check_choices_open(pool: &Pool<Postgres>) -> Result<(), AppError> {
+    let now = Utc::now();
+
+    let db_timezone = FixedOffset::east_opt(GLOBAL_TIMEZONE).expect("Wrong timezone in settings");
+    let now_db_time = now.with_timezone(&db_timezone);
+
+    let record = sqlx::query_as!(
+        StartEndDate,
+        "
+        SELECT start_date, end_date
+        FROM choices_open_date
+        WHERE $1 BETWEEN start_date AND end_date LIMIT 1",
+        now_db_time
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    if record.is_none() {
+        return Err(AppError(anyhow!(PICKING_CLASSES_CLOSED)));
+    }
+
+    Ok(())
+}
+
 //TODO: Maybe don't even display classes the user already attended (old-choices)
 pub async fn pick_fe(
     State(state): State<AppState>,
     headers: HeaderMap,
 ) -> Result<Html<String>, AppError> {
+    check_choices_open(&state.postgres).await?;
+
     let nr_mat = get_nr_mat_from_header_unchecked(&headers);
     let student_faculty = 1;
 
@@ -112,6 +140,8 @@ pub async fn pick(
     headers: HeaderMap,
     Form(payload): Form<Choice>,
 ) -> Result<Redirect, AppError> {
+    check_choices_open(&state.postgres).await?;
+
     let nr_mat = get_nr_mat_from_header_unchecked(&headers);
 
     let faculty = get_faculty_from_header_unchecked(&headers)

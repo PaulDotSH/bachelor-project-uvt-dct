@@ -6,3 +6,4 @@ pub mod classes_files;
 mod common;
 pub mod faculties;
 pub mod index;
+pub mod open_close_date;

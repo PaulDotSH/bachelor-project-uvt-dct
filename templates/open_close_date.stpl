@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insert Date</title>
+</head>
+<body>
+<h1>The timezone must be in GMT+<%- crate::GMT %></h1>
+<% if let Some(dd) = date_data { %>
+    <form action="/open_close_dates" method="post">
+        <label for="start_date">Start Date:</label>
+        <input type="datetime-local" id="start_date" name="start_date" required value="<%- dd.start_date.format("%Y-%m-%dT%H:%M").to_string() %>">
+        <br>
+        <label for="end_date">End Date:</label>
+        <input type="datetime-local" id="end_date" name="end_date" required value="<%- dd.end_date.format("%Y-%m-%dT%H:%M").to_string() %>">
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+<% } else { %>
+    <h1>The dates are not set!</h1>
+    <h1>Insert Date</h1>
+    <form action="/open_close_dates" method="post">
+        <label for="start_date">Start Date:</label>
+        <input type="datetime-local" id="start_date" name="start_date" required>
+        <br>
+        <label for="end_date">End Date:</label>
+        <input type="datetime-local" id="end_date" name="end_date" required>
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+<% } %>
+
+</body>
+</html>

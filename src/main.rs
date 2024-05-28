@@ -28,10 +28,8 @@ pub struct AppState {
     postgres: Pool<Postgres>,
 }
 
-// TODO: Think about classes open and close mechanism
 // TODO: Check what requirements the current DCT system has (x faculty cannot pick classes from y faculty),
 // which faculties dont need students to pick a class which semester (example IA year 2 semester 1)
-
 
 async fn create_default_account(pool: &Pool<Postgres>) {
     let salt = SaltString::generate(&mut OsRng);
@@ -76,11 +74,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let state = AppState { postgres: pool }; //TODO: Maybe add redis here for caching queries
 
     // Strictly for admins
-        let admin_auth = Router::new()
-            .route(
-                formatcp!("{FACULTIES_ENDPOINT}/:id/{KEYWORD_MODIFY_ENDPOINT}"),
-                get(endpoints::faculties::update_faculty_fe),
-            )
+    let admin_auth = Router::new()
+        .route(
+            formatcp!("{FACULTIES_ENDPOINT}/:id/{KEYWORD_MODIFY_ENDPOINT}"),
+            get(endpoints::faculties::update_faculty_fe),
+        )
         .route(
             formatcp!("{FACULTIES_ENDPOINT}/:id/{KEYWORD_MODIFY_ENDPOINT}"),
             post(endpoints::faculties::update_faculty),
@@ -89,22 +87,51 @@ async fn main() -> Result<(), Box<dyn Error>> {
             formatcp!("{FACULTIES_ENDPOINT}/:id/{KEYWORD_REMOVE_ENDPOINT}"),
             post(endpoints::faculties::delete_faculty),
         )
-        .route(formatcp!("{FACULTIES_ENDPOINT}/{KEYWORD_CREATE_ENDPOINT}"), post(endpoints::faculties::create_faculty))
-        .route(formatcp!("{FACULTIES_ENDPOINT}/{KEYWORD_CREATE_ENDPOINT}"), get(endpoints::faculties::create_faculty_fe))
-        .route(formatcp!("{CLASSES_ENDPOINT}/{KEYWORD_CREATE_ENDPOINT}"), post(endpoints::classes::create_class))
+        .route(
+            formatcp!("{FACULTIES_ENDPOINT}/{KEYWORD_CREATE_ENDPOINT}"),
+            post(endpoints::faculties::create_faculty),
+        )
+        .route(
+            formatcp!("{FACULTIES_ENDPOINT}/{KEYWORD_CREATE_ENDPOINT}"),
+            get(endpoints::faculties::create_faculty_fe),
+        )
+        .route(
+            formatcp!("{CLASSES_ENDPOINT}/{KEYWORD_CREATE_ENDPOINT}"),
+            post(endpoints::classes::create_class),
+        )
         .route(
             formatcp!("{CLASSES_ENDPOINT}/:id/{KEYWORD_REMOVE_ENDPOINT}"),
             post(endpoints::classes::delete_class),
         )
-        .route(formatcp!("{CLASSES_ENDPOINT}/:id/{KEYWORD_MODIFY_ENDPOINT}"), post(endpoints::classes::update_class))
+        .route(
+            formatcp!("{CLASSES_ENDPOINT}/:id/{KEYWORD_MODIFY_ENDPOINT}"),
+            post(endpoints::classes::update_class),
+        )
         .route(
             formatcp!("{CLASSES_ENDPOINT}/:id/{KEYWORD_MODIFY_ENDPOINT}"),
             get(endpoints::classes::update_class_fe),
         )
-        .route(formatcp!("{CLASSES_ENDPOINT}/{KEYWORD_CREATE_ENDPOINT}"), get(endpoints::classes::create_class_fe))
+        .route(
+            formatcp!("{CLASSES_ENDPOINT}/{KEYWORD_CREATE_ENDPOINT}"),
+            get(endpoints::classes::create_class_fe),
+        )
+        .route(
+            "/open_close_dates",
+            get(endpoints::open_close_date::get_page),
+        )
+        .route(
+            "/open_close_dates",
+            post(endpoints::open_close_date::update),
+        )
         .route("/files/:id/delete", post(endpoints::classes_files::delete))
-        .route(EXPORT_CSV_ENDPOINT, get(endpoints::administration::export_csv))
-        .route(EXPORT_JSON_ENDPOINT, get(endpoints::administration::export_json))
+        .route(
+            EXPORT_CSV_ENDPOINT,
+            get(endpoints::administration::export_csv),
+        )
+        .route(
+            EXPORT_JSON_ENDPOINT,
+            get(endpoints::administration::export_json),
+        )
         .route(
             MOVE_CHOICES_ENDPOINT,
             get(endpoints::administration::move_choices),
@@ -125,8 +152,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // For endpoints that have differences when the user is authed or the user isn't authed
     let auth_differences = Router::new()
         .route("/", get(endpoints::index::index))
-        .route(formatcp!("{CLASSES_ENDPOINT}/:id"), get(endpoints::classes::view_class_fe))
-        .route(FACULTIES_ENDPOINT, get(endpoints::faculties::view_faculties_fe))
+        .route(
+            formatcp!("{CLASSES_ENDPOINT}/:id"),
+            get(endpoints::classes::view_class_fe),
+        )
+        .route(
+            FACULTIES_ENDPOINT,
+            get(endpoints::faculties::view_faculties_fe),
+        )
         .route(CLASSES_ENDPOINT, get(endpoints::classes::filter_fe))
         .layer(middleware::from_fn_with_state(
             state.clone(),
@@ -169,5 +202,3 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
-
-

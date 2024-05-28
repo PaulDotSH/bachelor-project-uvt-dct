@@ -77,4 +77,14 @@ CREATE TABLE IF NOT EXISTS old_choices
     choice Serial NOT NULL references classes (id)
 );
 
+
+-- Timestampz to encode the timezone into the type
+CREATE TABLE IF NOT EXISTS choices_open_date
+(
+    id int NOT NULL DEFAULT 0 PRIMARY KEY,
+    start_date timestamptz NOT NULL,
+    end_date timestamptz NOT NULL
+);
+
+
 CREATE index on old_choices using hash (nr_mat);

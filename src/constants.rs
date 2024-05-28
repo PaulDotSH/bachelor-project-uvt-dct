@@ -3,10 +3,12 @@ use const_format::formatcp;
 
 // You can change this depending on your preferences
 // Error messages
+pub const GMT: i32 = 3;
+pub const GLOBAL_TIMEZONE: i32 = 3 * 3600;
 pub const INVALID_ADMIN_USER_PW: &str = "Incorrect username or password";
+pub const PICKING_CLASSES_CLOSED: &str = "Picking the DCT classes is closed for the moment";
 pub const INVALID_STUDENT_DETAILS: &str = "Incorrect nr_mat, email or cnp";
-pub const PICKED_CLASS_FROM_OWN_FACULTY: &str =
-    "You cannot pick a class from your own faculty";
+pub const PICKED_CLASS_FROM_OWN_FACULTY: &str = "You cannot pick a class from your own faculty";
 pub const BAD_DOT_ENV: &str = "Missing variable in .env file";
 pub const INVALID_TOKEN: &str = "Invalid token";
 // Variables
