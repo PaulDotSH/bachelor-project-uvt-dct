@@ -2,9 +2,9 @@ use anyhow::anyhow;
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use axum::body::Body;
 use axum::extract::State;
-use axum::http::{header, HeaderMap, HeaderValue, Request, StatusCode};
+use axum::http::{header, HeaderValue, Request, StatusCode};
 use axum::middleware::Next;
-use axum::response::{Html, IntoResponse, Response};
+use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -312,9 +312,8 @@ pub async fn student_login_handler(
 
     let cookie = format!("STOKEN={}; Path=/; Max-Age=604800", &token);
 
-    let mut headers = HeaderMap::new();
-    headers.insert(header::SET_COOKIE, cookie.parse().unwrap());
+    let mut redirect_resp = Redirect::to("/").into_response();
+    redirect_resp.headers_mut().insert(header::SET_COOKIE, cookie.parse().unwrap());
 
-    // TODO: Add redirect
-    Ok(headers.into_response())
+    Ok(redirect_resp)
 }

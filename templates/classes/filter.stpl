@@ -4,25 +4,34 @@
   <% include!("../header.stpl"); %>
 </head>
 <body>
-    <form action="" method="GET">
-        <select name="semester" id="semester" class="text-input">
-            <% if let Some(semester) = filter.semester { %>
-                <option value="">Oricare</option>
-                <option  <% if semester == Semester::First { %> selected <% } %> value=First>First</option>
-                <option  <% if semester == Semester::Second { %> selected <% } %> value=Second>Second</option>
-            <% } else { %>
-                <option  selected value="">Oricare</option>
-                <option  value=First>First</option>
-                <option  value=Second>Second</option>
-            <% } %>
-        </select>
+    <form action="" method="GET" class="auth-form">
+        <h1>Lista materii</h1>
 
-        <select name="faculty" id="faculty" class="text-input">
-            <option selected value="">Oricare</option>
-            <% for faculty in faculties {%>
-                <option <% if filter.faculty.is_some_and(|id| id == faculty.id ) { %> selected <% } %> value=<%- faculty.id %>><%- faculty.name %></option>
-            <% } %>
-        </select>
+        <div class="input-wrapper">
+            <label for="semester">Semestru</label>
+            <select name="semester" id="semester" class="text-input">
+                <% if let Some(semester) = filter.semester { %>
+                    <option value="">Oricare</option>
+                    <option  <% if semester == Semester::First { %> selected <% } %> value=First>First</option>
+                    <option  <% if semester == Semester::Second { %> selected <% } %> value=Second>Second</option>
+                <% } else { %>
+                    <option  selected value="">Oricare</option>
+                    <option  value=First>First</option>
+                    <option  value=Second>Second</option>
+                <% } %>
+            </select>
+        </div>
+
+
+        <div class="input-wrapper">
+            <label for="faculty">Facultate</label>
+            <select name="faculty" id="faculty" class="text-input">
+                <option selected value="">Oricare</option>
+                <% for faculty in faculties {%>
+                    <option <% if filter.faculty.is_some_and(|id| id == faculty.id ) { %> selected <% } %> value=<%- faculty.id %>><%- faculty.name %></option>
+                <% } %>
+            </select>
+        </div>
 
         <button type="submit">Search</button>
     </form>

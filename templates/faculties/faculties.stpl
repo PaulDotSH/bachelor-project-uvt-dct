@@ -5,15 +5,25 @@
   <% include!("../header.stpl"); %>
 </head>
 <body>
-    <ul>
+
+  <h1 class="page-title">Facultati</h1>
+
+    <ul class="faculty-list">
         <% for f in &faculties { %>
-          <a href="/classes?faculty=<%= f.id %>">
-            <div class="faculty-name"><%= f.name %></div>
-          </a>
-            <% if is_admin { %>
-                <a href="<%- FACULTIES_ENDPOINT %>/<%- f.id %>/<%- KEYWORD_REMOVE_ENDPOINT %>"> <button type="submit"><i class="fa-solid fa-trash"></i></button> </a>
-                <a href="<%- FACULTIES_ENDPOINT %>/<%- f.id %>/<%- KEYWORD_MODIFY_ENDPOINT %>"> <button type="submit"><i class="fa-solid fa-edit"></i></button> </a>
-            <% } %>
+        <div class="class">
+          <div class="class-title">
+            <a href="/classes?faculty=<%= f.id %>">
+              <div class="faculty-name"><%= f.name %></div>
+            </a>
+
+              <% if is_admin { %>
+                <div class="class-buttons">
+                  <a href="<%- FACULTIES_ENDPOINT %>/<%- f.id %>/<%- KEYWORD_REMOVE_ENDPOINT %>"> <button type="submit"><i class="fa-solid fa-trash"></i></button> </a>
+                  <a href="<%- FACULTIES_ENDPOINT %>/<%- f.id %>/<%- KEYWORD_MODIFY_ENDPOINT %>"> <button type="submit"><i class="fa-solid fa-edit"></i></button> </a>
+                </div>
+             <% } %>
+            </div>
+          </div>
         <% } %>
     </ul>
 </body>

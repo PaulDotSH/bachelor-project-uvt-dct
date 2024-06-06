@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Login</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
-            <link rel="stylesheet" href="/assets/main.css">
+    <link rel="stylesheet" href="/assets/main.css">
 </head>
+
 <body>
-<form action="login" method="post">
-    <input type="text" id="nr_mat" name="nr_mat" placeholder="Numar matricol">
-    <input type="text" id="email" name="email" placeholder="Email">
-    <input type="text" id="cnp3" name="cnp3" placeholder="Ultimele 3 cifre din CNP">
-    <button type="submit">Submit</button>
-</form>
+    <form action="login" method="post" class="auth-form">
+        <h1>Student Login</h1>
+        <input type="text" id="nr_mat" name="nr_mat" placeholder="Numar matricol">
+        <input type="text" id="email" name="email" placeholder="Email">
+        <input type="text" id="cnp3" name="cnp3" placeholder="Ultimele 3 cifre din CNP">
+        <button type="submit">Submit</button>
+    </form>
 </body>
+
 </html>

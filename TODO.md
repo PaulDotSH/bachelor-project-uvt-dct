@@ -14,7 +14,7 @@
 - [x] Check using the old_choices that the user didn't already choose this class already in the past
 - [x] Let admins move choices to old_choices 
 - [ ] Move to UVT UMS auth
-- [ ] Make choices optional, and add required fields, in case the DCT is already picked for students from a faculty
+- [x] Make choices optional, and add required fields, in case the DCT is already picked for students from a faculty
 
 # DCT Frontend
 - [x] List classes frontend with filters for semesters, faculties, it should be similar to a "listview"

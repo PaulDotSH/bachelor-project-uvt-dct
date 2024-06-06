@@ -5,21 +5,26 @@
   <% include!("../header.stpl"); %>
 </head>
 <body>
-    <form class="create-class" action="<%- CLASSES_ENDPOINT %>/<%- KEYWORD_CREATE_ENDPOINT %>" method="POST">
-        <input type="text" id="name" name="name" placeholder="Class name" required></div>
+    <form class="auth-form" action="<%- CLASSES_ENDPOINT %>/<%- KEYWORD_CREATE_ENDPOINT %>" method="POST">
+        <h1>Create Class</h1>
 
-        <div>
+        <input class="fixed-width" type="text" id="name" name="name" placeholder="Class name" required></div>
+
+        <div class="fixed-width">
             <% include!("../components/faculty_select.stpl"); %>
         </div>
-        <input type="text" id="descr" name="descr" placeholder="Description" required></div>
-        <select name="semester" id="semester" required>
+
+        <input class="fixed-width" type="text" id="descr" name="descr" placeholder="Description" required></div>
+        <select class="fixed-width" name="semester" id="semester" required>
             <option default value=First>First</option>
             <option value=Second>Second</option>
         </select>
-        <input type="text" id="requirements" name="requirements" placeholder="Requirements*"></div>
-        <input type="text" id="prof" name="prof" placeholder="Professor" required></div>
+        <input class="fixed-width" type="text" id="requirements" name="requirements" placeholder="Requirements*"></div>
+        <input class="fixed-width" type="text" id="prof" name="prof" placeholder="Professor" required></div>
 
-        <input type="submit" value="Create"/>
+        <button type="submit">
+            Create
+        </button>
     </form>
 </body>
 </html>

@@ -13,7 +13,6 @@ use sqlx::{Pool, Postgres};
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::constants::*;
 

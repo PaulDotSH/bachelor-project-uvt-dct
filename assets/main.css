@@ -1,17 +1,38 @@
 :root {
     --white: #ffffff;
-    --black: #2e2e2e;
+    --gray: #cecece;
+    --black: #171717;
     --blue: #25639E;
     --bg-blue: #0d5598;
     --yellow: #E4AC22;
     --light-yellow: #f0bf44;
 }
 
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    color: white;
+    user-select: none !important;
+}
+
+
+button {
+    outline: none;
+    cursor: pointer;
+}
+
+a {
+    text-decoration: none;
+}
 
 body {
     background-color: var(--black);
     font-family: 'Roboto', sans-serif;
     color: white;
+    padding: 15px;
 }
 
 
@@ -35,7 +56,7 @@ body {
 }
 
 
-.redirect-buttons > a {
+.redirect-buttons>a {
     width: 35%;
     min-width: 250px;
 }
@@ -62,11 +83,11 @@ body {
     transition: 0.2s;
 }
 
-.redirect-buttons > a:nth-child(odd) > .index-page-button:hover {
+.redirect-buttons>a:nth-child(odd)>.index-page-button:hover {
     transform: rotate(1deg);
 }
 
-.redirect-buttons > a:nth-child(even) > .index-page-button:hover {
+.redirect-buttons>a:nth-child(even)>.index-page-button:hover {
     transform: rotate(-1deg);
 }
 
@@ -76,7 +97,7 @@ body {
     gap: 1rem;
 }
 
-/* - NEW FACULTY PAGE - */ 
+/* - NEW FACULTY PAGE - */
 
 .form-title {
     text-align: center;
@@ -89,7 +110,7 @@ body {
 
 select {
     font-size: 30px;
-    padding: 20px 10px;
+    padding: 10px;
     background-color: var(--blue);
     border: 2px solid var(--blue);
     transition: 0.2s;
@@ -99,10 +120,15 @@ select {
     color: white;
 }
 
+select option:hover {
+    transition: 0.2s;
+    color: var(--yellow);
+}
+
 input {
     width: auto !important;
-    font-size: 30px;
-    padding: 20px 10px;
+    font-size: 20px;
+    padding: 15px 20px;
     background-color: var(--blue);
     border: 2px solid var(--blue);
     transition: 0.2s;
@@ -111,10 +137,41 @@ input {
     font-weight: 800;
     color: white;
 }
- 
+
+input::placeholder {
+    color: var(--gray);
+}
+
+
+.faculty-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.page-title {
+    text-align: center;
+    font-size: 40px;
+    margin-top: 10px;
+    margin-bottom: 30px;
+}
+
+.page-paragraph {
+    text-align: center;
+    font-size: 25px;
+    margin-bottom: 30px;
+}
+
 .faculty-name {
     font-size: 30px;
+    font-weight: 600;
     color: var(--yellow);
+    transition: 0.2s;
+}
+
+.faculty-name:hover {
+    color: var(--light-yellow);
+    transition: 0.2s;
 }
 
 #input:focus {
@@ -126,14 +183,12 @@ input {
     transition: 0.2s;
 }
 
-#input::placeholder, .text-input {
+#input::placeholder,
+.text-input {
     color: var(--white);
 }
 
-.input-wrapper {
-    display: flex;
-    flex-direction: column;
-}
+
 
 button {
     text-align: center;
@@ -143,7 +198,7 @@ button {
     border: 0;
     transition: 0.2s;
     font-size: 20px;
-    padding: 1.4rem;
+    padding: 10px 20px;
     font-weight: bold;
 }
 
@@ -166,6 +221,63 @@ button:hover {
 
 
 
+/* - AUTH FORM - */
+.auth-form {
+    margin: 40px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+}
+
+.auth-form>h1 {
+    font-size: 52px;
+}
+
+
+textarea {
+    min-height: 100px;
+    width: 500px;
+    resize: vertical;
+    background-color: var(--bg-blue);
+    padding: 10px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+textarea:focus {
+    outline: none;
+}
+
+textarea::placeholder {
+    color: var(--gray)
+}
+
+.centered {
+    width: 100%;
+}
+
+.fixed-width {
+    width: 500px !important;
+}
+
+.input-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 10px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.input-wrapper>label {
+    font-size: 26px;
+    font-weight: 600;
+}
+
+
+
 /* - CLASSES - */
 
 .classes {
@@ -179,7 +291,7 @@ button:hover {
     background-color: var(--blue);
     border-radius: 20px;
     padding: 20px 30px;
-    margin: 5px 20px;
+    margin: 5px 10px;
 }
 
 .class-title {
@@ -196,9 +308,13 @@ button:hover {
 }
 
 .class-info {
+    margin-top: 10px !important;
     color: var(--white);
     font-weight: 600;
     margin: 0 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 .class-description {
@@ -227,9 +343,9 @@ button:hover {
 button i {
     transition: transform 0.3s ease;
 }
-  
+
 button:hover i {
-    transform: scale(1.5);
+    transform: scale(1.25);
 }
 
 .class-name:hover {
@@ -239,12 +355,13 @@ button:hover i {
 
 @keyframes focus-in-expand {
     0% {
-      letter-spacing: -0.5em;
-      filter: blur(12px);
-      opacity: 0;
+        letter-spacing: -0.5em;
+        filter: blur(12px);
+        opacity: 0;
     }
+
     100% {
-      filter: blur(0px);
-      opacity: 1;
+        filter: blur(0px);
+        opacity: 1;
     }
-  }
+}
