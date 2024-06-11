@@ -4,8 +4,8 @@ use axum::http::HeaderMap;
 use axum::response::Html;
 use sailfish::TemplateOnce;
 
-#[derive(TemplateOnce)]
-#[template(path = "index.stpl")]
+#[derive(sailfish_minify::TemplateOnce)]
+#[templ(path = "index.stpl")]
 struct IndexPageTemplate {
     auth_type: AuthUserType,
 }

@@ -60,14 +60,14 @@ pub struct UpdatedFaculty {
     name: String,
 }
 
-#[derive(TemplateOnce)]
-#[template(path = "./faculties/edit.stpl")]
+#[derive(sailfish_minify::TemplateOnce)]
+#[templ(path = "./faculties/edit.stpl")]
 struct EditFacultyTemplate {
     faculty: Faculty,
 }
 
-#[derive(TemplateOnce)]
-#[template(path = "./faculties/create.stpl")]
+#[derive(sailfish_minify::TemplateOnce)]
+#[templ(path = "./faculties/create.stpl")]
 struct CreateFacultyTemplate {}
 
 pub async fn update_faculty_fe(
@@ -107,8 +107,8 @@ pub async fn update_faculty(
     Ok(Redirect::to("/faculties"))
 }
 
-#[derive(TemplateOnce)]
-#[template(path = "./faculties/faculties.stpl")]
+#[derive(sailfish_minify::TemplateOnce)]
+#[templ(path = "./faculties/faculties.stpl")]
 struct ViewFacultiesTemplate {
     faculties: Vec<Faculty>,
     is_admin: bool,

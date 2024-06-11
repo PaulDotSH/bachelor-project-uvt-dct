@@ -25,8 +25,8 @@ pub struct NewClass {
     prof: String,
 }
 
-#[derive(TemplateOnce)]
-#[template(path = "./classes/create.stpl")]
+#[derive(sailfish_minify::TemplateOnce)]
+#[templ(path = "./classes/create.stpl")]
 struct CreateClassTemplate {
     faculties: Vec<Faculty>,
 }
@@ -68,8 +68,8 @@ pub async fn create_class(
     Ok(Redirect::to(format!("{}/{}", CLASSES_ENDPOINT, id).as_str()))
 }
 
-#[derive(TemplateOnce)]
-#[template(path = "./classes/view.stpl")]
+#[derive(sailfish_minify::TemplateOnce)]
+#[templ(path = "./classes/view.stpl")]
 struct ViewClassTemplate {
     class: Class,
     files: Vec<ClassFile>,
@@ -179,8 +179,8 @@ pub async fn update_class(
     Ok(Redirect::to(CLASSES_ENDPOINT))
 }
 
-#[derive(TemplateOnce)]
-#[template(path = "classes/edit.stpl")]
+#[derive(sailfish_minify::TemplateOnce)]
+#[templ(path = "classes/edit.stpl")]
 struct EditClassTemplate {
     class: Class,
     faculties: Vec<Faculty>,
@@ -247,8 +247,8 @@ pub async fn update_class_fe(
     Ok(Html::from(body))
 }
 
-#[derive(TemplateOnce)]
-#[template(path = "./classes/filter.stpl")]
+#[derive(sailfish_minify::TemplateOnce)]
+#[templ(path = "./classes/filter.stpl")]
 struct FilterClassesTemplate {
     classes: Vec<Class>,
     filter: Filter,

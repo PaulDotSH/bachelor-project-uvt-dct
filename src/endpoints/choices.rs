@@ -31,8 +31,8 @@ struct TinyClass {
     pub semester: Semester,
 }
 
-#[derive(TemplateOnce)]
-#[template(path = "choice_pick.stpl")]
+#[derive(sailfish_minify::TemplateOnce)]
+#[templ(path = "choice_pick.stpl")]
 struct PickChoiceTemplate<'a> {
     fs_classes: &'a [TinyClass],
     ss_classes: &'a [TinyClass],

@@ -11,8 +11,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{error::AppError, AppState, GLOBAL_TIMEZONE};
 
-#[derive(TemplateOnce)]
-#[template(path = "open_close_date.stpl")]
+#[derive(sailfish_minify::TemplateOnce)]
+#[templ(path = "open_close_date.stpl")]
 struct OpenCloseDateTemplate {
     date_data: Option<StartEndDateTz>,
 }

@@ -6,30 +6,30 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.80"
+anyhow = "1.0.86"
 argon2 = "0.5.3"
-async-trait = "0.1.77"
-axum = { version = "0.7.4", features = ["multipart", "macros"] }
+async-trait = "0.1.80"
+axum = { version = "0.7.5", features = ["multipart", "macros"] }
 axum-macros = "0.4.1"
-chrono = { version = "0.4.34", features = ["serde"] }
+chrono = { version = "0.4.38", features = ["serde"] }
 dotenvy = "0.15.7"
 lazy_static = "1.4.0"
 rand = "0.8.5"
 sailfish = "0.8.3"
-serde = { version = "1.0.197", features = ["derive"] }
-sqlx = { version = "0.7.3", features = ["sqlx-postgres", "runtime-tokio", "uuid", "time", "postgres", "chrono"] }
-tokio = { version = "1.36.0", features = ["full"] }
+sailfish-minify = "0.1.0"
+serde = { version = "1.0.203", features = ["derive"] }
+sqlx = { version = "0.7.4", features = ["sqlx-postgres", "runtime-tokio", "uuid", "time", "postgres", "chrono"] }
+tokio = { version = "1.38.0", features = ["full"] }
 tower-http = { version = "0.5.2", features = ["uuid", "tokio", "fs", "trace"] }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["tracing", "chrono", "json"] }
 uuid = { version = "1.7.0", features = ["v4", "v7", "serde", "zerocopy"] }
-validator = { version = "0.16.1", features = ["derive"] }
+validator = { version = "0.18.1", features = ["derive"] }
 tower = "0.4.13"
-hyper = "1.2.0"
+hyper = "1.3.1"
 csv = "1.3.0"
-serde_json = "1.0.114"
+serde_json = "1.0.117"
 const_format = "0.2.32"
-samael = { version = "0.0.15", features = ["xmlsec"] }
 chrono-tz = "0.9.0"
 
 [profile.release]
