@@ -6,10 +6,10 @@ use serde::Deserialize;
 use sqlx::{query, query_as, query_scalar};
 use validator::Validate;
 
+use crate::constants::CLASSES_ENDPOINT;
 use crate::endpoints::common::*;
 use crate::error::AppError;
 use crate::AppState;
-use crate::constants::CLASSES_ENDPOINT;
 
 #[derive(Deserialize, Validate)]
 pub struct NewClass {
@@ -65,7 +65,9 @@ pub async fn create_class(
         .fetch_one(&state.postgres)
         .await?;
 
-    Ok(Redirect::to(format!("{}/{}", CLASSES_ENDPOINT, id).as_str()))
+    Ok(Redirect::to(
+        format!("{}/{}", CLASSES_ENDPOINT, id).as_str(),
+    ))
 }
 
 #[derive(sailfish_minify::TemplateOnce)]
@@ -269,7 +271,6 @@ pub async fn filter_fe(
     headers: HeaderMap,
     filter: Query<Filter>,
 ) -> Result<Html<String>, AppError> {
-    println!("Got: {:?}", filter);
     let record = query!( //($1 is null or faculty=$1) AND
         r#"
         SELECT id, name, descr, faculty, semester::text, requirements, prof FROM classes WHERE ($1::INT is null or faculty = $1) AND ($2::Semester is null or semester = $2);
@@ -305,7 +306,6 @@ pub async fn filter_fe(
             prof: record.prof,
         })
         .collect();
-    println!("Classes -> {:?}", &classes);
 
     let is_admin = is_admin_from_headers(&headers);
     let ctx = FilterClassesTemplate {
