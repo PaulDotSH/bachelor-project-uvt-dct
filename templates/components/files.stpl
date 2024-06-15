@@ -1,8 +1,7 @@
 <%
 use crate::constants::*;
 %>
-<% if !files.is_empty() { %>
-<% } %>
+
 <div class="files">
     <label>Files:</label>
     <% for file in files { %>
@@ -12,5 +11,5 @@ use crate::constants::*;
                 <button type="submit">Delete file</button>
             </form>
         <% } %>
-    <% } %>
+        <% } %>
 </div>

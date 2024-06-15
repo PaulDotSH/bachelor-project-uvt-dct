@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, fs};
 use std::error::Error;
 
 use argon2::password_hash::rand_core::OsRng;
@@ -192,6 +192,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let listener = TcpListener::bind(&env::var("BIND_ADDRESS").unwrap())
         .await
         .expect("Cannot start server");
+    fs::create_dir_all(ASSETS_CLASSES_LOCAL_PATH).unwrap();
 
     println!("DCT running.");
 

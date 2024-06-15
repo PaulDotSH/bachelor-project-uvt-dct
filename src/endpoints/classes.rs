@@ -103,7 +103,6 @@ pub async fn view_class_fe(
     .await?;
 
     let is_admin = is_admin_from_headers(&headers);
-
     let ctx = ViewClassTemplate {
         class: Class {
             id,
@@ -163,6 +162,7 @@ pub async fn update_class(
     Path(id): Path<i32>,
     ValidatedForm(payload): ValidatedForm<UpdatedClass>,
 ) -> Result<Redirect, AppError> {
+    println!("{}", payload.descr);
     query!(
         r#"
         UPDATE classes SET name = $1, descr = $2, faculty = $3, semester = $4, requirements = $5, prof = $6 WHERE id = $7;
@@ -295,7 +295,7 @@ pub async fn filter_fe(
         .map(|record| Class {
             id: record.id,
             name: record.name,
-            descr: record.descr,
+            descr: trim_string(&record.descr, 2, 100).to_string(),
             faculty: record.faculty,
             semester: match record.semester.unwrap().as_ref() {
                 "First" => Semester::First,

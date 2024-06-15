@@ -21,7 +21,7 @@
     </div>
 
     <div class="class-info">
-        <h4 class="class-description"><%= class.descr %></h4>
+        <div class="class-description multiline"><%= class.descr %></div>
 
         <div>Semester: <%- class.semester | dbg %></div>
 

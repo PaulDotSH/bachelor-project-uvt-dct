@@ -331,6 +331,10 @@ textarea::placeholder {
     transition: 0.3s;
 }
 
+.multiline {
+    white-space: pre-wrap;
+}
+
 .class-info {
     margin-top: 10px !important;
     color: var(--white);

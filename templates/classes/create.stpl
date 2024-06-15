@@ -14,12 +14,12 @@
             <% include!("../components/faculty_select.stpl"); %>
         </div>
 
-        <input class="fixed-width" type="text" id="descr" name="descr" placeholder="Description" required></div>
+        <textarea class="fixed-width" type="text" id="descr" name="descr" placeholder="Description" required></textarea></div>
         <select class="fixed-width" name="semester" id="semester" required>
             <option default value=First>First</option>
             <option value=Second>Second</option>
         </select>
-        <input class="fixed-width" type="text" id="requirements" name="requirements" placeholder="Requirements*"></div>
+        <textarea class="fixed-width" type="text" id="requirements" name="requirements" placeholder="Requirements*"></textarea></div>
         <input class="fixed-width" type="text" id="prof" name="prof" placeholder="Professor" required></div>
 
         <button type="submit">

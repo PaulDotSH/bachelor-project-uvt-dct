@@ -170,3 +170,24 @@ where
             .map(Some),
     }
 }
+
+pub fn trim_string(input: &str, max_newlines: u32, max_characters: usize) -> &str {
+    let mut newline_count = 0;
+    let mut char_count = 0;
+
+    let index = input.char_indices().find_map(|(i, c)| {
+        if c == '\n' {
+            newline_count += 1;
+        }
+        char_count += c.len_utf8();
+
+        if newline_count > max_newlines || char_count >= max_characters {
+            Some(i)
+        } else {
+            None
+        }
+    }).unwrap_or_else(|| input.len());
+
+    &input[..index]
+}
+
