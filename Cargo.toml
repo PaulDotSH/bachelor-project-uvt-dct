@@ -19,7 +19,7 @@ sailfish = "0.8.3"
 serde = { version = "1.0.203", features = ["derive"] }
 sqlx = { version = "0.7.4", features = ["sqlx-postgres", "runtime-tokio", "uuid", "time", "postgres", "chrono"] }
 tokio = { version = "1.38.0", features = ["full"] }
-tower-http = { version = "0.5.2", features = ["uuid", "tokio", "fs", "trace"] }
+tower-http = { version = "0.5.2", features = ["uuid", "tokio", "fs", "trace", "compression-gzip"] }
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["tracing", "chrono", "json"] }
 uuid = { version = "1.7.0", features = ["v4", "v7", "serde", "zerocopy"] }

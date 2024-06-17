@@ -1,5 +1,5 @@
-use std::{env, fs};
 use std::error::Error;
+use std::{env, fs};
 
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
@@ -11,6 +11,7 @@ use const_format::formatcp;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 use tokio::net::TcpListener;
+use tower_http::compression::CompressionLayer;
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 
@@ -187,7 +188,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .nest("/", no_auth)
         .nest("/", uploader)
         .with_state(state)
-        .nest_service("/assets", ServeDir::new("assets"));
+        .nest_service("/assets", ServeDir::new("assets"))
+        .layer(CompressionLayer::new());
 
     let listener = TcpListener::bind(&env::var("BIND_ADDRESS").unwrap())
         .await
