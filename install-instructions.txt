@@ -11,7 +11,6 @@ sudo cp pg_uuidv7--1.5.sql /usr/share/postgresql/14/extension/
 rm -rf 13 14 15 16 pg_uuidv7.control pg_uuidv7--1.5.sql pg_uuidv7.tar.gz
 sudo systemctl restart postgresql
 
-
 # Manual
 sudo -i -u postgres
 createdb dct
@@ -22,3 +21,10 @@ sudo systemctl restart postgresql
 cd ~/dct
 psql -d dct -U dct -f src/DB.sql
 psql -d dct -U dct -f sample-data.sql # Only if needed
+
+Install skytable
+skyd --auth-root-password password
+skysh --user root --password SKYTABLEEEE111111111111   
+CREATE SPACE cache
+USE cache
+CREATE MODEL cache.data(k: binary, data: binary)

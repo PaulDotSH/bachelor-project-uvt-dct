@@ -283,7 +283,29 @@ textarea::placeholder {
 }
 
 .fixed-width {
-    width: 500px !important;
+    width: 1000px !important;
+    min-width: 200px !important;
+}
+
+textarea.fixed-width {
+    min-height: 200px !important;
+    overflow: hidden !important;
+    max-height: 600px !important;
+    height: auto !important;
+}
+
+.textarea {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    resize: both;
+    min-height: 40px;
+    line-height: 20px;
+}
+
+.textarea[contenteditable]:empty::before {
+    content: "Placeholder still possible";
+    color: gray;
 }
 
 .input-wrapper {
@@ -294,6 +316,8 @@ textarea::placeholder {
     margin: 0 auto;
     width: 100%;
 }
+
+.hiddenc {}
 
 .input-wrapper>label {
     font-size: 26px;
@@ -322,6 +346,7 @@ textarea::placeholder {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
 }
 
 .class-name {

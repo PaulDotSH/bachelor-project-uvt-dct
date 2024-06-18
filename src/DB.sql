@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS students
     nr_mat     Text       NOT NULL PRIMARY KEY,
     email      Text       NOT NULL UNIQUE,
     cnp3       varchar(3) NOT NULL,
-    faculty    SERIAL     NOT NULL references faculties (id),
+    faculty    SERIAL     NOT NULL references faculties (id) ON DELETE CASCADE,
     token      Text       NOT NULL,
     tok_expire Timestamp  NOT NULL DEFAULT NOW() + INTERVAL '7 days'
 );
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS classes
     id           SERIAL   NOT NULL PRIMARY KEY,
     name         Text     NOT NULL,
     descr        Text     NOT NULL,
-    faculty      SERIAL   NOT NULL references faculties (id),
+    faculty      SERIAL   NOT NULL references faculties (id) ON DELETE CASCADE,
     semester     Semester NOT NULL,
     disabled     boolean  NOT NULL default false,
     requirements Text,
@@ -56,14 +56,14 @@ CREATE TABLE IF NOT EXISTS classes_files
 (
     id         SERIAL NOT NULL,
     name       Text   NOT NULL,
-    classes_id SERIAL NOT NULL references classes (id)
+    classes_id SERIAL NOT NULL references classes (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS choices
 (
     nr_mat        Text references students (nr_mat) NOT NULL PRIMARY KEY,
-    first_choice  Serial                            NOT NULL references classes (id),
-    second_choice Serial                            NOT NULL references classes (id),
+    first_choice  Serial                            NOT NULL references classes (id) ON DELETE CASCADE,
+    second_choice Serial                            NOT NULL references classes (id) ON DELETE CASCADE,
     created       timestamp                         NOT NULL DEFAULT NOW(),
     updated       timestamp                                  DEFAULT NULL,
     CHECK (first_choice <> second_choice) -- Checks if they are different
@@ -73,8 +73,8 @@ CREATE TABLE IF NOT EXISTS choices
 CREATE TABLE IF NOT EXISTS old_choices
 (
     id     UUID   NOT NULL DEFAULT uuid_generate_v7() PRIMARY KEY,
-    nr_mat Text   NOT NULL references students (nr_mat),
-    choice Serial NOT NULL references classes (id)
+    nr_mat Text   NOT NULL references students (nr_mat) ON DELETE CASCADE,
+    choice Serial NOT NULL references classes (id) ON DELETE CASCADE
 );
 
 

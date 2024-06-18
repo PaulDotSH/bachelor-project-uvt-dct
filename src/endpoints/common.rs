@@ -5,7 +5,7 @@ use std::str::FromStr;
 
 use async_trait::async_trait;
 use axum::extract::{rejection::FormRejection, Form, FromRequest, Request};
-use axum::http::{HeaderMap};
+use axum::http::HeaderMap;
 use rand::distributions::{Alphanumeric, DistString};
 use rand::thread_rng;
 use serde::de::DeserializeOwned;
@@ -14,13 +14,13 @@ use validator::Validate;
 
 use crate::error::AppError;
 
-#[derive(sqlx::FromRow, Debug, Deserialize, Serialize)]
+#[derive(sqlx::FromRow, Debug, Deserialize, Serialize, Clone)]
 pub struct Faculty {
     pub id: i32,
     pub name: String,
 }
 
-#[derive(sqlx::FromRow, Debug, Deserialize, Serialize)]
+#[derive(sqlx::FromRow, Debug, Deserialize, Serialize, Clone)]
 pub struct Class {
     pub id: i32,
     pub name: String,
@@ -68,7 +68,7 @@ impl FromStr for Semester {
 pub enum AuthUserType {
     Guest,
     Student,
-    Admin
+    Admin,
 }
 
 #[inline(always)]
@@ -130,10 +130,10 @@ pub fn is_admin_from_headers(headers: &HeaderMap) -> bool {
 #[inline(always)]
 pub fn get_auth_type_from_headers(headers: &HeaderMap) -> AuthUserType {
     if is_admin_from_headers(headers) {
-        return AuthUserType::Admin
+        return AuthUserType::Admin;
     }
     if is_student_from_headers(headers) {
-        return AuthUserType::Student
+        return AuthUserType::Student;
     }
     AuthUserType::Guest
 }
@@ -175,19 +175,26 @@ pub fn trim_string(input: &str, max_newlines: u32, max_characters: usize) -> &st
     let mut newline_count = 0;
     let mut char_count = 0;
 
-    let index = input.char_indices().find_map(|(i, c)| {
-        if c == '\n' {
-            newline_count += 1;
-        }
-        char_count += c.len_utf8();
+    let index = input
+        .char_indices()
+        .find_map(|(i, c)| {
+            if c == '\n' {
+                newline_count += 1;
+            }
+            char_count += c.len_utf8();
 
-        if newline_count > max_newlines || char_count >= max_characters {
-            Some(i)
-        } else {
-            None
-        }
-    }).unwrap_or_else(|| input.len());
+            if newline_count > max_newlines || char_count >= max_characters {
+                Some(i)
+            } else {
+                None
+            }
+        })
+        .unwrap_or_else(|| input.len());
 
     &input[..index]
 }
 
+pub struct SkytableCacheModel<'a> {
+    query: String,
+    data: &'a [u8],
+}

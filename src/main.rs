@@ -8,6 +8,8 @@ use axum::extract::DefaultBodyLimit;
 use axum::routing::{get, post};
 use axum::{middleware, Router};
 use const_format::formatcp;
+use redis_pool::RedisPool;
+use redis_pool::SingleRedisPool;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 use tokio::net::TcpListener;
@@ -26,6 +28,7 @@ mod error;
 #[derive(Clone)]
 pub struct AppState {
     postgres: Pool<Postgres>,
+    redis: SingleRedisPool,
 }
 
 // TODO: Check what requirements the current DCT system has (x faculty cannot pick classes from y faculty),
@@ -51,7 +54,8 @@ async fn create_default_account(pool: &Pool<Postgres>) {
 }
 
 #[allow(dead_code)]
-#[tokio::main]
+// #[tokio::main]
+#[tokio::main(worker_threads = 12)]
 async fn main() -> Result<(), Box<dyn Error>> {
     dotenvy::dotenv()?;
 
@@ -71,7 +75,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     create_default_account(&pool).await;
 
-    let state = AppState { postgres: pool }; //TODO: Maybe add redis here for caching queries
+    let client = redis::Client::open(env::var("REDIS_ADDRESS").expect(BAD_DOT_ENV).as_str())
+        .expect("Error while testing the connection");
+
+    let state = AppState {
+        postgres: pool,
+        redis: RedisPool::from(client),
+    }; //TODO: Maybe add redis here for caching queries
 
     // Strictly for admins
     let admin_auth = Router::new()
@@ -84,7 +94,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             post(endpoints::faculties::update_faculty),
         )
         .route(
-            formatcp!("{FACULTIES_ENDPOINT}/:id/{KEYWORD_REMOVE_ENDPOINT}"),
+            formatcp!("/faculties/:id/delete"),
             post(endpoints::faculties::delete_faculty),
         )
         .route(
