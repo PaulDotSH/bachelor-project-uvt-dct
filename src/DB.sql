@@ -52,6 +52,8 @@ CREATE TABLE IF NOT EXISTS classes
     prof         Text     NOT NULL
 );
 
+CREATE index on classes using hash(faculty);
+
 CREATE TABLE IF NOT EXISTS classes_files
 (
     id         SERIAL NOT NULL,

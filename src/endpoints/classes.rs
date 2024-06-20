@@ -65,6 +65,8 @@ pub async fn create_class(
         .fetch_one(&state.postgres)
         .await?;
 
+    flush_redis_db(&state.redis).await; // Cache invalidation
+
     Ok(Redirect::to(
         format!("{}/{}", CLASSES_ENDPOINT, id).as_str(),
     ))
@@ -138,6 +140,8 @@ pub async fn delete_class(
     .execute(&state.postgres)
     .await?;
 
+    flush_redis_db(&state.redis).await; // Cache invalidation
+
     Ok(Redirect::to(CLASSES_ENDPOINT))
 }
 
@@ -176,6 +180,8 @@ pub async fn update_class(
     )
         .execute(&state.postgres)
         .await?;
+
+    flush_redis_db(&state.redis).await; // Cache invalidation
 
     Ok(Redirect::to(CLASSES_ENDPOINT))
 }
@@ -277,66 +283,68 @@ pub async fn filter_fe(
     filter: Query<Filter>,
 ) -> Result<Html<String>, AppError> {
     let encoded_filter: Vec<u8> = bincode::serialize(&filter.0).unwrap();
-    let classes: Vec<Class>;
-    let faculties: Vec<Faculty>;
+    let mut classes: Vec<Class> = Vec::new();
+    let mut faculties: Vec<Faculty> = Vec::new();
 
     let mut conn = state.redis.aquire().await.unwrap();
-    if let Ok(encoded) = redis::cmd("MGET")
+    if let Ok(encoded) = redis::cmd("GET")
         .arg(&encoded_filter)
         .query_async::<_, Vec<u8>>(&mut conn)
         .await
     {
-        let cf: ClassFaculty = bincode::deserialize(&encoded[..]).unwrap();
-        classes = cf.classes;
-        faculties = cf.faculties;
-    } else {
-        let record = query!( //($1 is null or faculty=$1) AND
-            r#"
-            SELECT id, name, descr, faculty, semester::text, requirements, prof FROM classes WHERE ($1::INT is null or faculty = $1) AND ($2::Semester is null or semester = $2);
-            "#,
-            filter.faculty,
-            filter.semester as Option<Semester>
-        )
+        if !encoded.is_empty() {
+            let cf: ClassFaculty = bincode::deserialize(&encoded[..]).unwrap();
+            classes = cf.classes;
+            faculties = cf.faculties
+        } else {
+            let record = query!( //($1 is null or faculty=$1) AND
+                r#"
+                SELECT id, name, descr, faculty, semester::text, requirements, prof FROM classes WHERE ($1::INT is null or faculty = $1) AND ($2::Semester is null or semester = $2);
+                "#,
+                filter.faculty,
+                filter.semester as Option<Semester>
+            )
+                .fetch_all(&state.postgres)
+                .await?;
+
+            classes = record
+                .into_iter()
+                .map(|record| Class {
+                    id: record.id,
+                    name: record.name,
+                    descr: trim_string(&record.descr, 4, 500).to_string(),
+                    faculty: record.faculty,
+                    semester: match record.semester.unwrap().as_ref() {
+                        "First" => Semester::First,
+                        "Second" => Semester::Second,
+                        _ => panic!("Unexpected semester value"),
+                    },
+                    requirements: record.requirements,
+                    prof: record.prof,
+                })
+                .collect();
+
+            faculties = query_as!(
+                Faculty,
+                r#"
+                    SELECT * FROM faculties;
+                    "#
+            )
             .fetch_all(&state.postgres)
             .await?;
 
-        classes = record
-            .into_iter()
-            .map(|record| Class {
-                id: record.id,
-                name: record.name,
-                descr: trim_string(&record.descr, 4, 500).to_string(),
-                faculty: record.faculty,
-                semester: match record.semester.unwrap().as_ref() {
-                    "First" => Semester::First,
-                    "Second" => Semester::Second,
-                    _ => panic!("Unexpected semester value"),
-                },
-                requirements: record.requirements,
-                prof: record.prof,
-            })
-            .collect();
-
-        faculties = query_as!(
-            Faculty,
-            r#"
-                SELECT * FROM faculties;
-                "#
-        )
-        .fetch_all(&state.postgres)
-        .await?;
-
-        let cf = ClassFaculty {
-            classes: classes.clone(),
-            faculties: faculties.clone(),
-        };
-        let encoded: Vec<u8> = bincode::serialize(&cf).unwrap();
-        let _: () = redis::pipe()
-            .set(encoded_filter, encoded)
-            .ignore()
-            .query_async(&mut conn)
-            .await
-            .unwrap();
+            let cf = ClassFaculty {
+                classes: classes.clone(),
+                faculties: faculties.clone(),
+            };
+            let encoded: Vec<u8> = bincode::serialize(&cf).unwrap();
+            let _: () = redis::pipe()
+                .set_ex(encoded_filter, encoded, 600)
+                .ignore()
+                .query_async(&mut conn)
+                .await
+                .unwrap();
+        }
     }
 
     let is_admin = is_admin_from_headers(&headers);

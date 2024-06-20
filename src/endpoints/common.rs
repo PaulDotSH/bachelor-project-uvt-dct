@@ -1,19 +1,19 @@
 #![allow(dead_code)]
 
-use std::fmt::{Display, Formatter};
-use std::str::FromStr;
-
+use crate::error::AppError;
 use async_trait::async_trait;
 use axum::extract::{rejection::FormRejection, Form, FromRequest, Request};
 use axum::http::HeaderMap;
 use rand::distributions::{Alphanumeric, DistString};
 use rand::thread_rng;
+use redis::aio::MultiplexedConnection;
+use redis_pool::connection::RedisPoolConnection;
+use redis_pool::SingleRedisPool;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
+use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 use validator::Validate;
-
-use crate::error::AppError;
-
 #[derive(sqlx::FromRow, Debug, Deserialize, Serialize, Clone)]
 pub struct Faculty {
     pub id: i32,
@@ -192,6 +192,23 @@ pub fn trim_string(input: &str, max_newlines: u32, max_characters: usize) -> &st
         .unwrap_or_else(|| input.len());
 
     &input[..index]
+}
+
+#[inline(always)]
+pub async fn flush_redis_db_conn(conn: &mut RedisPoolConnection<MultiplexedConnection>) {
+    redis::cmd("flushdb")
+        .query_async::<_, Vec<u8>>(conn)
+        .await
+        .unwrap();
+}
+
+#[inline(always)]
+pub async fn flush_redis_db(redis: &SingleRedisPool) {
+    let mut conn = redis.aquire().await.unwrap();
+    redis::cmd("flushdb")
+        .query_async::<_, ()>(&mut conn)
+        .await
+        .unwrap();
 }
 
 pub struct SkytableCacheModel<'a> {
