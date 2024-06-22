@@ -111,11 +111,7 @@ pub async fn view_class_fe(
             name: record.name,
             descr: record.descr,
             faculty: record.faculty, //TODO: Add faculty name...
-            semester: match record.semester.unwrap().as_ref() {
-                "First" => Semester::First,
-                "Second" => Semester::Second,
-                _ => panic!("Unexpected semester value"),
-            },
+            semester: record.semester.unwrap().as_str().try_into().unwrap(),
             requirements: record.requirements,
             prof: record.prof,
         },
@@ -238,11 +234,7 @@ pub async fn update_class_fe(
             name: class_record.name,
             descr: class_record.descr,
             faculty: class_record.faculty, //TODO: Add faculty name...
-            semester: match class_record.semester.unwrap().as_ref() {
-                "First" => Semester::First,
-                "Second" => Semester::Second,
-                _ => panic!("Unexpected semester value"),
-            },
+            semester: class_record.semester.unwrap().as_str().try_into().unwrap(),
             requirements: class_record.requirements,
             prof: class_record.prof,
         },
@@ -314,11 +306,7 @@ pub async fn filter_fe(
                     name: record.name,
                     descr: trim_string(&record.descr, 4, 500).to_string(),
                     faculty: record.faculty,
-                    semester: match record.semester.unwrap().as_ref() {
-                        "First" => Semester::First,
-                        "Second" => Semester::Second,
-                        _ => panic!("Unexpected semester value"),
-                    },
+                    semester: record.semester.unwrap().as_str().try_into().unwrap(),
                     requirements: record.requirements,
                     prof: record.prof,
                 })

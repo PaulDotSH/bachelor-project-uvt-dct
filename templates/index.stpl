@@ -12,10 +12,7 @@ use crate::constants::*; %>
     <div class="redirect-buttons"> 
         <% if auth_type == AuthUserType::Guest { %>
             <div> Log in as a student to be able to pick the DCT classes you want </div>
-            <a href="/login"> <button> Login </button> </a>
-            <br>
-            <br>
-            <br>
+            <a href="/login"> <button class="index-page-button auth-button"> Login </button> </a>
         <% } %>
 
         <% if auth_type == AuthUserType::Admin { %>

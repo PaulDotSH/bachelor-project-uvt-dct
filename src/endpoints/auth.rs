@@ -6,6 +6,7 @@ use axum::http::{header, HeaderValue, Request, StatusCode};
 use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
+use axum::routing::head;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::query_scalar;
@@ -45,7 +46,9 @@ pub async fn permissive_middleware(
     next: Next,                 // So we can forward the request
 ) -> Response {
     let headers = request.headers_mut();
-
+    let _ = headers.remove("id"); // We do not care if the header did or did not exist
+    let _ = headers.remove("nr_mat"); // We do not care if the header did or did not exist
+    // We do not need to remove the other headers since our check if the request is sent by a student is done by checking the nr_mat
     let Some(cookie) = headers.get("cookie").cloned() else {
         return next.run(request).await;
     };
@@ -88,11 +91,11 @@ pub async fn permissive_middleware(
                 "SELECT nr_mat, email, tok_expire, faculty FROM students WHERE token = $1",
                 token
             )
-                .fetch_one(&state.postgres)
-                .await
-                else {
-                    return StatusCode::UNAUTHORIZED.into_response();
-                };
+            .fetch_one(&state.postgres)
+            .await
+            else {
+                return StatusCode::UNAUTHORIZED.into_response();
+            };
 
             if student.tok_expire < Utc::now().naive_utc() {
                 return next.run(request).await;
@@ -168,7 +171,7 @@ pub async fn student_middleware(
 
 pub async fn auth_middleware(
     State(state): State<AppState>,
-    mut request: Request<Body>, // insert the username and role headers in the following requests in case they are needed so we don't hit the database again
+    mut request: Request<Body>, // insert the username headers in the following requests in case they are needed, so we don't hit the database again
     next: Next,                 // So we can forward the request
 ) -> Response {
     let headers = request.headers_mut();
@@ -273,12 +276,10 @@ pub async fn admin_login_handler(
         .body(Body::empty())
         .unwrap();
 
-
     let headers = resp.headers_mut();
     headers.insert(header::SET_COOKIE, cookie.parse().unwrap());
     headers.insert("location", "/".parse().unwrap());
 
-    
     Ok(resp)
 }
 
@@ -313,7 +314,9 @@ pub async fn student_login_handler(
     let cookie = format!("STOKEN={}; Path=/; Max-Age=604800", &token);
 
     let mut redirect_resp = Redirect::to("/").into_response();
-    redirect_resp.headers_mut().insert(header::SET_COOKIE, cookie.parse().unwrap());
+    redirect_resp
+        .headers_mut()
+        .insert(header::SET_COOKIE, cookie.parse().unwrap());
 
     Ok(redirect_resp)
 }

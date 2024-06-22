@@ -24,7 +24,7 @@ struct StudentChoice {
     updated: Option<NaiveDateTime>,
 }
 
-#[derive(sqlx::FromRow, Debug, Deserialize, Serialize)]
+#[derive(sqlx::FromRow, Debug, Deserialize, Serialize, Clone)]
 struct TinyClass {
     pub id: i32,
     pub name: String,
@@ -63,24 +63,81 @@ async fn check_choices_open(pool: &Pool<Postgres>) -> Result<(), AppError> {
     Ok(())
 }
 
+#[derive(Deserialize, Serialize)]
+struct PickCache {
+    classes: Vec<TinyClass>,
+    split_idx: usize,
+}
+
 //TODO: Maybe don't even display classes the user already attended (old-choices)
 pub async fn pick_fe(
     State(state): State<AppState>,
     headers: HeaderMap,
 ) -> Result<Html<String>, AppError> {
-    check_choices_open(&state.postgres).await?;
+    let student_faculty = 1;
+    let mut split_idx = 0;
+
+    let mut classes: Vec<TinyClass> = Vec::new();
+    let mut conn = state.redis.aquire().await.unwrap();
+    if let Ok(encoded) = redis::cmd("GET")
+        .arg(student_faculty)
+        .query_async::<_, Vec<u8>>(&mut conn)
+        .await
+    {
+        if !encoded.is_empty() {
+            let pc: PickCache = bincode::deserialize(&encoded[..]).unwrap();
+            classes = pc.classes;
+            split_idx = pc.split_idx;
+        } else {
+            let records = query!(
+                r#"
+            SELECT id, name, semester::text FROM classes WHERE faculty != $1 ORDER BY semester;
+            "#,
+                student_faculty,
+            )
+            .fetch_all(&state.postgres)
+            .await?;
+
+            let len = records.len();
+            classes = records
+                .into_iter()
+                .enumerate()
+                .map(|(i, record)| {
+                    let semester = match record.semester.unwrap().as_ref() {
+                        "First" => Semester::First,
+                        "Second" => {
+                            if split_idx == 0 {
+                                split_idx = i;
+                            }
+                            Semester::Second
+                        }
+                        _ => panic!("Unexpected semester value"),
+                    };
+
+                    TinyClass {
+                        id: record.id,
+                        name: record.name,
+                        semester,
+                    }
+                })
+                .collect_with_capacity(len);
+
+            let pc = PickCache {
+                classes: classes.clone(),
+                split_idx,
+            };
+            let encoded: Vec<u8> = bincode::serialize(&pc).unwrap();
+            let _: () = redis::pipe()
+                .set_ex(student_faculty, encoded, 600)
+                .ignore()
+                .query_async(&mut conn)
+                .await
+                .unwrap();
+        }
+    }
 
     let nr_mat = get_nr_mat_from_header_unchecked(&headers);
-    let student_faculty = 1;
-
-    let records = query!(
-        r#"
-        SELECT id, name, semester::text FROM classes WHERE faculty != $1 ORDER BY semester;
-        "#,
-        student_faculty,
-    )
-    .fetch_all(&state.postgres)
-    .await?;
+    check_choices_open(&state.postgres).await?;
 
     let choices = query_as!(
         StudentChoice,
@@ -91,32 +148,6 @@ pub async fn pick_fe(
     )
     .fetch_optional(&state.postgres)
     .await?;
-
-    let mut split_idx = 0;
-
-    let len = records.len();
-    let classes = records
-        .into_iter()
-        .enumerate()
-        .map(|(i, record)| {
-            let semester = match record.semester.unwrap().as_ref() {
-                "First" => Semester::First,
-                "Second" => {
-                    if split_idx == 0 {
-                        split_idx = i;
-                    }
-                    Semester::Second
-                }
-                _ => panic!("Unexpected semester value"),
-            };
-
-            TinyClass {
-                id: record.id,
-                name: record.name,
-                semester,
-            }
-        })
-        .collect_with_capacity(len);
 
     let ctx = PickChoiceTemplate {
         fs_classes: &classes[0..split_idx],

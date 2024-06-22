@@ -52,6 +52,18 @@ impl Display for Semester {
     }
 }
 
+impl TryFrom<&str> for Semester {
+    type Error = &'static str;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        match s {
+            "First" => Ok(Semester::First),
+            "Second" => Ok(Semester::Second),
+            &_ => Err("Cannot parse Semester"),
+        }
+    }
+}
+
 impl FromStr for Semester {
     type Err = &'static str;
 
@@ -189,7 +201,7 @@ pub fn trim_string(input: &str, max_newlines: u32, max_characters: usize) -> &st
                 None
             }
         })
-        .unwrap_or_else(|| input.len());
+        .unwrap_or(input.len());
 
     &input[..index]
 }
@@ -205,13 +217,5 @@ pub async fn flush_redis_db_conn(conn: &mut RedisPoolConnection<MultiplexedConne
 #[inline(always)]
 pub async fn flush_redis_db(redis: &SingleRedisPool) {
     let mut conn = redis.aquire().await.unwrap();
-    redis::cmd("flushdb")
-        .query_async::<_, ()>(&mut conn)
-        .await
-        .unwrap();
-}
-
-pub struct SkytableCacheModel<'a> {
-    query: String,
-    data: &'a [u8],
+    flush_redis_db_conn(&mut conn).await;
 }

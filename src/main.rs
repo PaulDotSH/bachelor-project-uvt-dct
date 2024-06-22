@@ -20,7 +20,6 @@ use tower_http::trace::TraceLayer;
 use crate::constants::*;
 
 pub mod collect_with_capacity;
-mod constant_parse;
 pub mod constants;
 mod endpoints;
 mod error;
@@ -54,8 +53,7 @@ async fn create_default_account(pool: &Pool<Postgres>) {
 }
 
 #[allow(dead_code)]
-// #[tokio::main]
-#[tokio::main(worker_threads = 12)]
+#[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     dotenvy::dotenv()?;
 

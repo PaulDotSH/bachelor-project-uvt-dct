@@ -317,16 +317,14 @@ textarea.fixed-width {
     width: 100%;
 }
 
-.hiddenc {}
-
 .input-wrapper>label {
     font-size: 26px;
     font-weight: 600;
 }
 
-
-
-/* - CLASSES - */
+.auth-button {
+    border: 1px solid var(--yellow);
+}
 
 .classes {
     display: flex;
@@ -373,6 +371,7 @@ textarea.fixed-width {
 .class-description {
     color: rgb(237, 237, 237);
     font-weight: normal;
+    overflow: clip;
 }
 
 

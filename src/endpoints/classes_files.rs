@@ -55,7 +55,7 @@ pub async fn upload(
         file.write_all(&data).await?;
 
         if query!(
-        r#"
+            r#"
         INSERT INTO classes_files(name, classes_id) VALUES ($1, $2);
         "#,
             file_name,
