@@ -6,7 +6,6 @@ use axum::http::{header, HeaderValue, Request, StatusCode};
 use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
-use axum::routing::head;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::query_scalar;

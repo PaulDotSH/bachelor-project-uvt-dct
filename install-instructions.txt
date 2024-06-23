@@ -1,7 +1,7 @@
 #TODO: Find an easier way to install uuidv7
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 sudo apt update
 sudo apt install build-essential pkg-config
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 sudo apt install postgresql postgresql-contrib
 wget https://github.com/fboulnois/pg_uuidv7/releases/download/v1.5.0/pg_uuidv7.tar.gz
 tar -xvf pg_uuidv7.tar.gz
@@ -10,6 +10,12 @@ sudo cp pg_uuidv7.control /usr/share/postgresql/14/extension/
 sudo cp pg_uuidv7--1.5.sql /usr/share/postgresql/14/extension/
 rm -rf 13 14 15 16 pg_uuidv7.control pg_uuidv7--1.5.sql pg_uuidv7.tar.gz
 sudo systemctl restart postgresql
+sudo apt install lsb-release curl gpg
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+sudo apt-get update
+sudo apt-get install redis
+sudo systemctl start redis
 
 # Manual
 sudo -i -u postgres

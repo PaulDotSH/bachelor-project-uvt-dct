@@ -4,7 +4,7 @@
     <% include!("header.stpl"); %>
 </head>
 <body>
-<h1 class="page-title">Set Time Zones</h1>
+<h1 class="page-title">Set start and closing dates</h1>
 <h1 class="page-paragraph">The timezone must be in GMT+<%- crate::GMT %></h1>
 
 <% if let Some(dd) = date_data { %>

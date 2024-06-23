@@ -71,10 +71,10 @@ body {
     background-color: var(--blue);
     color: var(--white);
     margin: 0 !important;
-    padding: 10px 35px !important;
+    padding: 6px 28px !important;
     border: 0;
     transition: 0.2s;
-    font-size: 2rem;
+    font-size: 1.6rem;
     font-weight: bolder;
 }
 
