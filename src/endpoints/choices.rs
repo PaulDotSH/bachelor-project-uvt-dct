@@ -39,6 +39,7 @@ struct PickChoiceTemplate<'a> {
     choices: Option<StudentChoice>,
 }
 
+// Function to check if the students should be able to pick their preferred classes
 async fn check_choices_open(pool: &Pool<Postgres>) -> Result<(), AppError> {
     let now = Utc::now();
 
@@ -69,11 +70,12 @@ struct PickCache {
     split_idx: usize,
 }
 
-//TODO: Maybe don't even display classes the user already attended (old-choices)
+// Handler for the /pick frontend
 pub async fn pick_fe(
     State(state): State<AppState>,
     headers: HeaderMap,
 ) -> Result<Html<String>, AppError> {
+    check_choices_open(&state.postgres).await?;
     let student_faculty = 1;
     let mut split_idx = 0;
 
@@ -84,6 +86,7 @@ pub async fn pick_fe(
         .query_async::<_, Vec<u8>>(&mut conn)
         .await
     {
+        // Cached data
         if !encoded.is_empty() {
             let pc: PickCache = bincode::deserialize(&encoded[..]).unwrap();
             classes = pc.classes;
@@ -126,6 +129,7 @@ pub async fn pick_fe(
                 classes: classes.clone(),
                 split_idx,
             };
+            // Cache the data
             let encoded: Vec<u8> = bincode::serialize(&pc).unwrap();
             let _: () = redis::pipe()
                 .set_ex(student_faculty, encoded, 600)
@@ -137,7 +141,6 @@ pub async fn pick_fe(
     }
 
     let nr_mat = get_nr_mat_from_header_unchecked(&headers);
-    check_choices_open(&state.postgres).await?;
 
     let choices = query_as!(
         StudentChoice,
@@ -149,6 +152,7 @@ pub async fn pick_fe(
     .fetch_optional(&state.postgres)
     .await?;
 
+    // First semester and second semester
     let ctx = PickChoiceTemplate {
         fs_classes: &classes[0..split_idx],
         ss_classes: &classes[split_idx..],
@@ -166,6 +170,7 @@ pub struct Choice {
     second: i32,
 }
 
+// Endpoint for post request of user picking a class
 pub async fn pick(
     State(state): State<AppState>,
     headers: HeaderMap,

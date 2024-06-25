@@ -4,6 +4,7 @@ use axum::response::{Html, Redirect};
 use sailfish::TemplateOnce;
 use serde::{Deserialize, Serialize};
 use sqlx::{query, query_as, query_scalar};
+use tokio::select;
 use validator::Validate;
 
 use crate::constants::CLASSES_ENDPOINT;
@@ -19,6 +20,7 @@ pub struct NewClass {
     descr: String,
     faculty: i32,
     semester: Semester,
+    // We want to treat empty strings as None type because of how browsers send forms with empty strings and Serde deserializes them
     #[serde(default, deserialize_with = "empty_string_as_none")]
     requirements: Option<String>,
     #[validate(length(min = 8, message = "Nume profesor prea scurt"))]
@@ -59,7 +61,7 @@ pub async fn create_class(
         payload.descr.trim(),
         payload.faculty,
         payload.semester as Semester, // needed for custom enums
-        payload.requirements.as_ref().map(|s| s.trim()),
+        payload.requirements.as_ref().map(|s| s.trim()), // Trims string if not None
         payload.prof.trim()
     )
         .fetch_one(&state.postgres)
@@ -110,7 +112,7 @@ pub async fn view_class_fe(
             id,
             name: record.name,
             descr: record.descr,
-            faculty: record.faculty, //TODO: Add faculty name...
+            faculty: record.faculty,
             semester: record.semester.unwrap().as_str().try_into().unwrap(),
             requirements: record.requirements,
             prof: record.prof,
@@ -227,13 +229,12 @@ pub async fn update_class_fe(
     .fetch_all(&state.postgres)
     .await?;
 
-    //TODO: Fix this duplication
     let ctx = EditClassTemplate {
         class: Class {
             id,
             name: class_record.name,
             descr: class_record.descr,
-            faculty: class_record.faculty, //TODO: Add faculty name...
+            faculty: class_record.faculty,
             semester: class_record.semester.unwrap().as_str().try_into().unwrap(),
             requirements: class_record.requirements,
             prof: class_record.prof,
@@ -284,6 +285,7 @@ pub async fn filter_fe(
         .query_async::<_, Vec<u8>>(&mut conn)
         .await
     {
+        // Result cached
         if !encoded.is_empty() {
             let cf: ClassFaculty = bincode::deserialize(&encoded[..]).unwrap();
             classes = cf.classes;
@@ -325,6 +327,8 @@ pub async fn filter_fe(
                 classes: classes.clone(),
                 faculties: faculties.clone(),
             };
+
+            // Cache the result
             let encoded: Vec<u8> = bincode::serialize(&cf).unwrap();
             let _: () = redis::pipe()
                 .set_ex(encoded_filter, encoded, 600)

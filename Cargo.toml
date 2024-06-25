@@ -36,7 +36,7 @@ redis = { version = "0.25.4", features = ["tokio-comp"] }
 redis_pool = "0.4.0"
 
 [profile.release]
-debug = true # For flamegraph
+#debug = true # For flamegraph
 
 [profile.production]
 inherits = "release"

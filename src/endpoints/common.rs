@@ -29,7 +29,6 @@ pub struct Class {
     pub semester: Semester,
     pub requirements: Option<String>,
     pub prof: String,
-    //TODO: Add class files
 }
 
 #[derive(sqlx::Type, Serialize, Deserialize, Debug, PartialEq, Clone, Copy)]
@@ -183,6 +182,7 @@ where
     }
 }
 
+// Trims the string based on newline and character count
 pub fn trim_string(input: &str, max_newlines: u32, max_characters: usize) -> &str {
     let mut newline_count = 0;
     let mut char_count = 0;

@@ -1,4 +1,5 @@
 use axum::extract::State;
+use axum::response::Redirect;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::{query_as, Pool, Postgres};
@@ -6,6 +7,7 @@ use sqlx::{query_as, Pool, Postgres};
 use crate::error::AppError;
 use crate::AppState;
 
+// Helper function to export user choices into a Vec<UserChoice>
 async fn export_choices(pool: &Pool<Postgres>) -> Result<Vec<UserChoices>, sqlx::Error> {
     query_as!(
         UserChoices,
@@ -41,6 +43,7 @@ struct UserChoices {
     updated: Option<NaiveDateTime>,
 }
 
+// Wrapper around export_choices to serialize into csv
 pub async fn export_csv(State(state): State<AppState>) -> Result<String, AppError> {
     let choices = export_choices(&state.postgres).await?;
 
@@ -53,13 +56,15 @@ pub async fn export_csv(State(state): State<AppState>) -> Result<String, AppErro
     Ok(String::from_utf8(wtr.into_inner()?)?)
 }
 
+// Wrapper around export_choices to serialize into JSON
 pub async fn export_json(State(state): State<AppState>) -> Result<String, AppError> {
     let choices = export_choices(&state.postgres).await?;
 
     Ok(serde_json::to_string(&choices)?)
 }
 
-pub async fn move_choices(State(state): State<AppState>) -> Result<(), AppError> {
+// Endpoint to move the choices into the archive table
+pub async fn move_choices(State(state): State<AppState>) -> Result<Redirect, AppError> {
     let mut transaction = state.postgres.begin().await?;
 
     sqlx::query!(
@@ -82,5 +87,5 @@ pub async fn move_choices(State(state): State<AppState>) -> Result<(), AppError>
 
     transaction.commit().await?;
 
-    Ok(())
+    Ok(Redirect::to("/"))
 }

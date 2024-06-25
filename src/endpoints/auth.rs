@@ -15,6 +15,7 @@ use crate::endpoints::common::generate_token;
 use crate::error::AppError;
 use crate::AppState;
 
+// Serve the static files
 pub async fn admin_login_fe() -> Html<&'static str> {
     Html::from(ADMIN_LOGIN_HTML)
 }
@@ -37,8 +38,7 @@ struct Student {
     faculty: i32,
 }
 
-// TODO: Refactor and clean duplicate code
-
+// Middleware that lets everyone in, however properly sets headers for admins and students
 pub async fn permissive_middleware(
     State(state): State<AppState>,
     mut request: Request<Body>, // insert the username and role headers in the following requests in case they are needed, so we don't hit the database again
@@ -112,6 +112,7 @@ pub async fn permissive_middleware(
     next.run(request).await
 }
 
+// Middleware that only allows students
 pub async fn student_middleware(
     State(state): State<AppState>,
     mut request: Request<Body>,
@@ -168,6 +169,7 @@ pub async fn student_middleware(
     next.run(request).await
 }
 
+// Middleware that only allows admins
 pub async fn auth_middleware(
     State(state): State<AppState>,
     mut request: Request<Body>, // insert the username headers in the following requests in case they are needed, so we don't hit the database again
@@ -230,6 +232,7 @@ pub struct StudentLogin {
     cnp3: String,
 }
 
+// Post request for login
 pub async fn admin_login_handler(
     State(state): State<AppState>,
     Form(payload): Form<AdminLogin>,
@@ -282,6 +285,7 @@ pub async fn admin_login_handler(
     Ok(resp)
 }
 
+// Post request for students login
 pub async fn student_login_handler(
     State(state): State<AppState>,
     Form(payload): Form<StudentLogin>,
