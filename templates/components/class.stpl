@@ -16,7 +16,6 @@
             <% } %>
 
             <h4 class="class-id">ID: <%- class.id %></h4>
-            <!-- TODO: Adauga numele facultati per clasa -->
         </div>
     </div>
 

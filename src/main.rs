@@ -8,6 +8,8 @@ use axum::extract::DefaultBodyLimit;
 use axum::routing::{get, post};
 use axum::{middleware, Router};
 use const_format::formatcp;
+use redis_pool::RedisPool;
+use redis_pool::SingleRedisPool;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 use tokio::net::TcpListener;
@@ -18,19 +20,18 @@ use tower_http::trace::TraceLayer;
 use crate::constants::*;
 
 pub mod collect_with_capacity;
-mod constant_parse;
 pub mod constants;
 mod endpoints;
 mod error;
 
+// Appstate that needs to be shared between endpoints
 #[derive(Clone)]
 pub struct AppState {
     postgres: Pool<Postgres>,
+    redis: SingleRedisPool,
 }
 
-// TODO: Check what requirements the current DCT system has (x faculty cannot pick classes from y faculty),
-// which faculties dont need students to pick a class which semester (example IA year 2 semester 1)
-
+// In case there is no administrator account, a default one will be made
 async fn create_default_account(pool: &Pool<Postgres>) {
     let salt = SaltString::generate(&mut OsRng);
     let password = Argon2::default()
@@ -50,15 +51,11 @@ async fn create_default_account(pool: &Pool<Postgres>) {
     .await;
 }
 
+// Program entry point
 #[allow(dead_code)]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     dotenvy::dotenv()?;
-
-    // Added tracing, more advanced tracing should be done in nginx or whatever alternative used
-    // tracing_subscriber::registry()
-    //     .with(tracing_subscriber::fmt::layer())
-    //     .init();
 
     let pool = PgPoolOptions::new()
         .max_connections(
@@ -71,9 +68,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     create_default_account(&pool).await;
 
-    let state = AppState { postgres: pool }; //TODO: Maybe add redis here for caching queries
+    let client = redis::Client::open(env::var("REDIS_ADDRESS").expect(BAD_DOT_ENV).as_str())
+        .expect("Error while testing the connection");
 
-    // Strictly for admins
+    let state = AppState {
+        postgres: pool,
+        redis: RedisPool::from(client),
+    };
+
+    // Endpoints strictly for admins
     let admin_auth = Router::new()
         .route(
             formatcp!("{FACULTIES_ENDPOINT}/:id/{KEYWORD_MODIFY_ENDPOINT}"),
@@ -84,7 +87,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             post(endpoints::faculties::update_faculty),
         )
         .route(
-            formatcp!("{FACULTIES_ENDPOINT}/:id/{KEYWORD_REMOVE_ENDPOINT}"),
+            formatcp!("/faculties/:id/delete"),
             post(endpoints::faculties::delete_faculty),
         )
         .route(
@@ -135,19 +138,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route(
             MOVE_CHOICES_ENDPOINT,
             get(endpoints::administration::move_choices),
-        ) // TODO: Make this post and with a ui
+        )
         .layer(middleware::from_fn_with_state(
             state.clone(),
             endpoints::auth::auth_middleware,
-        ))
-        .layer(TraceLayer::new_for_http());
+        ));
 
+    // Uploader
     let uploader = Router::new()
         .route(
             formatcp!("{CLASSES_ENDPOINT}/:id/{KEYWORD_UPLOAD_ENDPOINT}"),
             post(endpoints::classes_files::upload),
         )
-        .layer(DefaultBodyLimit::max(MAX_CLASS_FILE_SIZE));
+        .layer(DefaultBodyLimit::max(MAX_CLASS_FILE_SIZE))
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            endpoints::auth::auth_middleware,
+        ));
 
     // For endpoints that have differences when the user is authed or the user isn't authed
     let auth_differences = Router::new()
@@ -173,6 +180,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/login", get(endpoints::auth::student_login_fe))
         .route("/login", post(endpoints::auth::student_login_handler));
 
+    // Endpoints available only to students
     let student_auth = Router::new()
         .route(STUDENT_PICK_ENDPOINT, get(endpoints::choices::pick_fe))
         .route(STUDENT_PICK_ENDPOINT, post(endpoints::choices::pick))
@@ -194,6 +202,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let listener = TcpListener::bind(&env::var("BIND_ADDRESS").unwrap())
         .await
         .expect("Cannot start server");
+
     fs::create_dir_all(ASSETS_CLASSES_LOCAL_PATH).unwrap();
 
     println!("DCT running.");

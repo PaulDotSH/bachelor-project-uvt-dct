@@ -18,8 +18,10 @@
 
               <% if is_admin { %>
                 <div class="class-buttons">
-                  <a href="<%- FACULTIES_ENDPOINT %>/<%- f.id %>/<%- KEYWORD_REMOVE_ENDPOINT %>"> <button type="submit"><i class="fa-solid fa-trash"></i></button> </a>
                   <a href="<%- FACULTIES_ENDPOINT %>/<%- f.id %>/<%- KEYWORD_MODIFY_ENDPOINT %>"> <button type="submit"><i class="fa-solid fa-edit"></i></button> </a>
+                  <form action="<%- FACULTIES_ENDPOINT %>/<%- f.id %>/<%- KEYWORD_REMOVE_ENDPOINT %>" method="post">
+                    <button type="submit"><i class="fa-solid fa-trash"></i></button>
+                  </form>
                 </div>
              <% } %>
             </div>

@@ -6,7 +6,7 @@
 </head>
 <body>
     <form action="<%- CLASSES_ENDPOINT %>/<%- class.id %>/<%- KEYWORD_MODIFY_ENDPOINT %>" method="POST" class="auth-form">
-        <input type="text" id="name" name="name" placeholder="Class name" value="<%= class.name %>" required></div>
+        <input class="fixed-width" type="text" id="name" name="name" placeholder="Class name" value="<%= class.name %>" required></div>
 
         <div class="fixed-width">
             <div class="input-wrapper">
@@ -16,9 +16,8 @@
         </div>
 
 
-
-        <textarea type="text" id="descr" name="descr" placeholder="Description" required><%= class.descr %></textarea></div>
-       
+        <textarea class="fixed-width" type="text" id="descr" name="descr" placeholder="Description" required><%= class.descr %></textarea></div>
+        
         <div class="fixed-width">
             <select name="semester" id="semester" required>
                     <option <% if class.semester == Semester::First { %> selected <% } %> value=First>First</option>
@@ -26,8 +25,8 @@
             </select>
         </div>
 
-        <input type="text" id="requirements" name="requirements" placeholder="Requirements*" value="<%= class.requirements.unwrap_or("".to_owned()) %>"></div>
-        <input type="text" id="prof" name="prof" placeholder="Professor" value="<%= class.prof %>" required></div>
+        <textarea class="fixed-width" type="text" id="requirements" name="requirements" placeholder="Requirements*"><%= class.requirements.unwrap_or("".to_owned()) %></textarea></div>
+        <input class="fixed-width" type="text" id="prof" name="prof" placeholder="Professor" value="<%= class.prof %>" required></div>
 
         <button type="submit" value="">Edit</button>
     </form>
@@ -42,7 +41,7 @@
             </div>
         </div>
 
-        <input type="submit" value="Upload Files">
+        <button type="submit" value="">Upload Files</button>
     </form>
 
     <% let is_admin = true; %> <% include!("../components/files.stpl"); %>

@@ -50,6 +50,7 @@ pub async fn delete_faculty(
     )
     .execute(&state.postgres)
     .await?;
+    flush_redis_db(&state.redis).await; // Cache invalidation
 
     Ok(Redirect::to("/faculties"))
 }
@@ -103,6 +104,7 @@ pub async fn update_faculty(
     )
     .execute(&state.postgres)
     .await?;
+    flush_redis_db(&state.redis).await; // Cache invalidation
 
     Ok(Redirect::to("/faculties"))
 }

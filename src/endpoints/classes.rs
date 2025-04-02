@@ -2,8 +2,9 @@ use axum::extract::{Path, Query, State};
 use axum::http::HeaderMap;
 use axum::response::{Html, Redirect};
 use sailfish::TemplateOnce;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sqlx::{query, query_as, query_scalar};
+use tokio::select;
 use validator::Validate;
 
 use crate::constants::CLASSES_ENDPOINT;
@@ -19,6 +20,7 @@ pub struct NewClass {
     descr: String,
     faculty: i32,
     semester: Semester,
+    // We want to treat empty strings as None type because of how browsers send forms with empty strings and Serde deserializes them
     #[serde(default, deserialize_with = "empty_string_as_none")]
     requirements: Option<String>,
     #[validate(length(min = 8, message = "Nume profesor prea scurt"))]
@@ -55,15 +57,17 @@ pub async fn create_class(
         r#"
         INSERT INTO classes(name, descr, faculty, semester, requirements, prof) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;
         "#,
-        payload.name,
-        payload.descr,
+        payload.name.trim(),
+        payload.descr.trim(),
         payload.faculty,
         payload.semester as Semester, // needed for custom enums
-        payload.requirements,
-        payload.prof
+        payload.requirements.as_ref().map(|s| s.trim()), // Trims string if not None
+        payload.prof.trim()
     )
         .fetch_one(&state.postgres)
         .await?;
+
+    flush_redis_db(&state.redis).await; // Cache invalidation
 
     Ok(Redirect::to(
         format!("{}/{}", CLASSES_ENDPOINT, id).as_str(),
@@ -108,12 +112,8 @@ pub async fn view_class_fe(
             id,
             name: record.name,
             descr: record.descr,
-            faculty: record.faculty, //TODO: Add faculty name...
-            semester: match record.semester.unwrap().as_ref() {
-                "First" => Semester::First,
-                "Second" => Semester::Second,
-                _ => panic!("Unexpected semester value"),
-            },
+            faculty: record.faculty,
+            semester: record.semester.unwrap().as_str().try_into().unwrap(),
             requirements: record.requirements,
             prof: record.prof,
         },
@@ -137,6 +137,8 @@ pub async fn delete_class(
     )
     .execute(&state.postgres)
     .await?;
+
+    flush_redis_db(&state.redis).await; // Cache invalidation
 
     Ok(Redirect::to(CLASSES_ENDPOINT))
 }
@@ -162,7 +164,6 @@ pub async fn update_class(
     Path(id): Path<i32>,
     ValidatedForm(payload): ValidatedForm<UpdatedClass>,
 ) -> Result<Redirect, AppError> {
-    println!("{}", payload.descr);
     query!(
         r#"
         UPDATE classes SET name = $1, descr = $2, faculty = $3, semester = $4, requirements = $5, prof = $6 WHERE id = $7;
@@ -177,6 +178,8 @@ pub async fn update_class(
     )
         .execute(&state.postgres)
         .await?;
+
+    flush_redis_db(&state.redis).await; // Cache invalidation
 
     Ok(Redirect::to(CLASSES_ENDPOINT))
 }
@@ -226,18 +229,13 @@ pub async fn update_class_fe(
     .fetch_all(&state.postgres)
     .await?;
 
-    //TODO: Fix this duplication
     let ctx = EditClassTemplate {
         class: Class {
             id,
             name: class_record.name,
             descr: class_record.descr,
-            faculty: class_record.faculty, //TODO: Add faculty name...
-            semester: match class_record.semester.unwrap().as_ref() {
-                "First" => Semester::First,
-                "Second" => Semester::Second,
-                _ => panic!("Unexpected semester value"),
-            },
+            faculty: class_record.faculty,
+            semester: class_record.semester.unwrap().as_str().try_into().unwrap(),
             requirements: class_record.requirements,
             prof: class_record.prof,
         },
@@ -258,7 +256,7 @@ struct FilterClassesTemplate {
     is_admin: bool,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Filter {
     #[serde(default, deserialize_with = "empty_string_as_none")]
     faculty: Option<i32>,
@@ -266,46 +264,80 @@ pub struct Filter {
     semester: Option<Semester>,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct ClassFaculty {
+    classes: Vec<Class>,
+    faculties: Vec<Faculty>,
+}
+
 pub async fn filter_fe(
     State(state): State<AppState>,
     headers: HeaderMap,
     filter: Query<Filter>,
 ) -> Result<Html<String>, AppError> {
-    let record = query!( //($1 is null or faculty=$1) AND
-        r#"
-        SELECT id, name, descr, faculty, semester::text, requirements, prof FROM classes WHERE ($1::INT is null or faculty = $1) AND ($2::Semester is null or semester = $2);
-        "#,
-        filter.faculty,
-        filter.semester as Option<Semester>
-    )
-        .fetch_all(&state.postgres)
-        .await?;
+    let encoded_filter: Vec<u8> = bincode::serialize(&filter.0).unwrap();
+    let mut classes: Vec<Class> = Vec::new();
+    let mut faculties: Vec<Faculty> = Vec::new();
 
-    let faculties = query_as!(
-        Faculty,
-        r#"
-        SELECT * FROM faculties;
-        "#
-    )
-    .fetch_all(&state.postgres)
-    .await?;
+    let mut conn = state.redis.aquire().await.unwrap();
+    if let Ok(encoded) = redis::cmd("GET")
+        .arg(&encoded_filter)
+        .query_async::<_, Vec<u8>>(&mut conn)
+        .await
+    {
+        // Result cached
+        if !encoded.is_empty() {
+            let cf: ClassFaculty = bincode::deserialize(&encoded[..]).unwrap();
+            classes = cf.classes;
+            faculties = cf.faculties
+        } else {
+            let record = query!( //($1 is null or faculty=$1) AND
+                r#"
+                SELECT id, name, descr, faculty, semester::text, requirements, prof FROM classes WHERE ($1::INT is null or faculty = $1) AND ($2::Semester is null or semester = $2);
+                "#,
+                filter.faculty,
+                filter.semester as Option<Semester>
+            )
+                .fetch_all(&state.postgres)
+                .await?;
 
-    let classes = record
-        .into_iter()
-        .map(|record| Class {
-            id: record.id,
-            name: record.name,
-            descr: trim_string(&record.descr, 2, 100).to_string(),
-            faculty: record.faculty,
-            semester: match record.semester.unwrap().as_ref() {
-                "First" => Semester::First,
-                "Second" => Semester::Second,
-                _ => panic!("Unexpected semester value"),
-            },
-            requirements: record.requirements,
-            prof: record.prof,
-        })
-        .collect();
+            classes = record
+                .into_iter()
+                .map(|record| Class {
+                    id: record.id,
+                    name: record.name,
+                    descr: trim_string(&record.descr, 4, 500).to_string(),
+                    faculty: record.faculty,
+                    semester: record.semester.unwrap().as_str().try_into().unwrap(),
+                    requirements: record.requirements,
+                    prof: record.prof,
+                })
+                .collect();
+
+            faculties = query_as!(
+                Faculty,
+                r#"
+                    SELECT * FROM faculties;
+                    "#
+            )
+            .fetch_all(&state.postgres)
+            .await?;
+
+            let cf = ClassFaculty {
+                classes: classes.clone(),
+                faculties: faculties.clone(),
+            };
+
+            // Cache the result
+            let encoded: Vec<u8> = bincode::serialize(&cf).unwrap();
+            let _: () = redis::pipe()
+                .set_ex(encoded_filter, encoded, 600)
+                .ignore()
+                .query_async(&mut conn)
+                .await
+                .unwrap();
+        }
+    }
 
     let is_admin = is_admin_from_headers(&headers);
     let ctx = FilterClassesTemplate {

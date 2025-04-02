@@ -5,8 +5,8 @@
   <% include!("../header.stpl"); %>
 </head>
 <body>
-    <form action="<%- FACULTIES_ENDPOINT %>/<%- faculty.id %>/<%- KEYWORD_MODIFY_ENDPOINT %>" method="POST">
-        <input type="text" id="name" name="name" value="<%= faculty.name %>" required></div>
+    <form class="auth-form" action="<%- FACULTIES_ENDPOINT %>/<%- faculty.id %>/<%- KEYWORD_MODIFY_ENDPOINT %>" method="POST">
+        <input class="fixed-width" type="text" id="name" name="name" value="<%= faculty.name %>" required></div>
         <input type="submit" value="Modify" />
     </form>
 </body>

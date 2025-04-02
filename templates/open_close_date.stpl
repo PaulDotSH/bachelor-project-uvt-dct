@@ -4,7 +4,7 @@
     <% include!("header.stpl"); %>
 </head>
 <body>
-<h1 class="page-title">Set Time Zones</h1>
+<h1 class="page-title">Set start and closing dates</h1>
 <h1 class="page-paragraph">The timezone must be in GMT+<%- crate::GMT %></h1>
 
 <% if let Some(dd) = date_data { %>
@@ -26,16 +26,23 @@
         <button type="submit">Submit</button>
     </form>
 <% } else { %>
-    <h1>The dates are not set!</h1>
-    <h1>Insert Date</h1>
-    <form action="/open_close_dates" method="post">
-        <label for="start_date">Start Date:</label>
-        <input type="datetime-local" id="start_date" name="start_date" required>
-        <br>
-        <label for="end_date">End Date:</label>
-        <input type="datetime-local" id="end_date" name="end_date" required>
-        <br>
-        <input type="submit" value="Submit">
+<form action="/open_close_dates" method="post" class="auth-form">
+        <h1>The dates are not set!</h1>
+        <div class="centered-input">
+            <div class="input-wrapper">
+                <label for="start_date">Start Date:</label>
+                <input type="datetime-local" id="start_date" name="start_date" required>
+            </div>
+        </div>
+
+        <div class="centered-input">
+            <div class="input-wrapper">
+                <label for="end_date">End Date:</label>
+                <input type="datetime-local" id="end_date" name="end_date" required>
+            </div>
+        </div>
+
+        <button type="submit">Submit</button>
     </form>
 <% } %>
 

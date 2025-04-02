@@ -6,11 +6,11 @@
 <body>
     <h1 class="logo">DCT</h1>
 
-    <form action="/faculty/new" method="POST" class="stlyed-form">
+    <form action="/faculties/new" method="POST" class="stlyed-form">
         <h2 class="form-title">Add a new faculty</h2>
 
-        <div class="input-wrapper">
-          <input type="text" id="name" name="name" placeholder="Faculty Name" class="text-input" required></div>
+        <div class="auth-form">
+          <input class="fixed-width" type="text" id="name" name="name" placeholder="Faculty Name" class="text-input" required>
           <button type="submit">Add</button>
         </div>
     </form>

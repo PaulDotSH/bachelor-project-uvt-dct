@@ -1,26 +1,26 @@
 #![allow(dead_code)]
 
-use std::fmt::{Display, Formatter};
-use std::str::FromStr;
-
+use crate::error::AppError;
 use async_trait::async_trait;
 use axum::extract::{rejection::FormRejection, Form, FromRequest, Request};
-use axum::http::{HeaderMap};
+use axum::http::HeaderMap;
 use rand::distributions::{Alphanumeric, DistString};
 use rand::thread_rng;
+use redis::aio::MultiplexedConnection;
+use redis_pool::connection::RedisPoolConnection;
+use redis_pool::SingleRedisPool;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
+use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 use validator::Validate;
-
-use crate::error::AppError;
-
-#[derive(sqlx::FromRow, Debug, Deserialize, Serialize)]
+#[derive(sqlx::FromRow, Debug, Deserialize, Serialize, Clone)]
 pub struct Faculty {
     pub id: i32,
     pub name: String,
 }
 
-#[derive(sqlx::FromRow, Debug, Deserialize, Serialize)]
+#[derive(sqlx::FromRow, Debug, Deserialize, Serialize, Clone)]
 pub struct Class {
     pub id: i32,
     pub name: String,
@@ -29,7 +29,6 @@ pub struct Class {
     pub semester: Semester,
     pub requirements: Option<String>,
     pub prof: String,
-    //TODO: Add class files
 }
 
 #[derive(sqlx::Type, Serialize, Deserialize, Debug, PartialEq, Clone, Copy)]
@@ -52,6 +51,18 @@ impl Display for Semester {
     }
 }
 
+impl TryFrom<&str> for Semester {
+    type Error = &'static str;
+
+    fn try_from(s: &str) -> Result<Self, Self::Error> {
+        match s {
+            "First" => Ok(Semester::First),
+            "Second" => Ok(Semester::Second),
+            &_ => Err("Cannot parse Semester"),
+        }
+    }
+}
+
 impl FromStr for Semester {
     type Err = &'static str;
 
@@ -68,7 +79,7 @@ impl FromStr for Semester {
 pub enum AuthUserType {
     Guest,
     Student,
-    Admin
+    Admin,
 }
 
 #[inline(always)]
@@ -130,10 +141,10 @@ pub fn is_admin_from_headers(headers: &HeaderMap) -> bool {
 #[inline(always)]
 pub fn get_auth_type_from_headers(headers: &HeaderMap) -> AuthUserType {
     if is_admin_from_headers(headers) {
-        return AuthUserType::Admin
+        return AuthUserType::Admin;
     }
     if is_student_from_headers(headers) {
-        return AuthUserType::Student
+        return AuthUserType::Student;
     }
     AuthUserType::Guest
 }
@@ -171,23 +182,40 @@ where
     }
 }
 
+// Trims the string based on newline and character count
 pub fn trim_string(input: &str, max_newlines: u32, max_characters: usize) -> &str {
     let mut newline_count = 0;
     let mut char_count = 0;
 
-    let index = input.char_indices().find_map(|(i, c)| {
-        if c == '\n' {
-            newline_count += 1;
-        }
-        char_count += c.len_utf8();
+    let index = input
+        .char_indices()
+        .find_map(|(i, c)| {
+            if c == '\n' {
+                newline_count += 1;
+            }
+            char_count += c.len_utf8();
 
-        if newline_count > max_newlines || char_count >= max_characters {
-            Some(i)
-        } else {
-            None
-        }
-    }).unwrap_or_else(|| input.len());
+            if newline_count > max_newlines || char_count >= max_characters {
+                Some(i)
+            } else {
+                None
+            }
+        })
+        .unwrap_or(input.len());
 
     &input[..index]
 }
 
+#[inline(always)]
+pub async fn flush_redis_db_conn(conn: &mut RedisPoolConnection<MultiplexedConnection>) {
+    redis::cmd("flushdb")
+        .query_async::<_, Vec<u8>>(conn)
+        .await
+        .unwrap();
+}
+
+#[inline(always)]
+pub async fn flush_redis_db(redis: &SingleRedisPool) {
+    let mut conn = redis.aquire().await.unwrap();
+    flush_redis_db_conn(&mut conn).await;
+}
