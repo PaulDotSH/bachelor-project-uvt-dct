@@ -4,13 +4,12 @@ use axum::response::{Html, Redirect};
 use sailfish::TemplateOnce;
 use serde::{Deserialize, Serialize};
 use sqlx::{query, query_as, query_scalar};
-use tokio::select;
 use validator::Validate;
 
 use crate::constants::CLASSES_ENDPOINT;
 use crate::endpoints::common::*;
 use crate::error::AppError;
-use crate::AppState;
+use crate::lib::AppState;
 
 #[derive(Deserialize, Validate)]
 pub struct NewClass {

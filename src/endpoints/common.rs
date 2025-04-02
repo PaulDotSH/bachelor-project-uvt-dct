@@ -208,10 +208,7 @@ pub fn trim_string(input: &str, max_newlines: u32, max_characters: usize) -> &st
 
 #[inline(always)]
 pub async fn flush_redis_db_conn(conn: &mut RedisPoolConnection<MultiplexedConnection>) {
-    redis::cmd("flushdb")
-        .query_async::<_, Vec<u8>>(conn)
-        .await
-        .unwrap();
+    let _ = redis::cmd("flushdb").query_async::<_, Vec<u8>>(conn).await;
 }
 
 #[inline(always)]

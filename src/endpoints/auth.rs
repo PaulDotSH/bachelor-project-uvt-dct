@@ -13,7 +13,7 @@ use sqlx::query_scalar;
 use crate::constants::*;
 use crate::endpoints::common::generate_token;
 use crate::error::AppError;
-use crate::AppState;
+use crate::lib::AppState;
 
 // Serve the static files
 pub async fn admin_login_fe() -> Html<&'static str> {
@@ -47,7 +47,7 @@ pub async fn permissive_middleware(
     let headers = request.headers_mut();
     let _ = headers.remove("id"); // We do not care if the header did or did not exist
     let _ = headers.remove("nr_mat"); // We do not care if the header did or did not exist
-    // We do not need to remove the other headers since our check if the request is sent by a student is done by checking the nr_mat
+                                      // We do not need to remove the other headers since our check if the request is sent by a student is done by checking the nr_mat
     let Some(cookie) = headers.get("cookie").cloned() else {
         return next.run(request).await;
     };

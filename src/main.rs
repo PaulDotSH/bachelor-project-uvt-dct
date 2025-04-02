@@ -1,80 +1,27 @@
 use std::error::Error;
 use std::{env, fs};
 
-use argon2::password_hash::rand_core::OsRng;
-use argon2::password_hash::SaltString;
-use argon2::{Argon2, PasswordHasher};
 use axum::extract::DefaultBodyLimit;
 use axum::routing::{get, post};
 use axum::{middleware, Router};
 use const_format::formatcp;
-use redis_pool::RedisPool;
-use redis_pool::SingleRedisPool;
-use sqlx::postgres::PgPoolOptions;
-use sqlx::{Pool, Postgres};
+use lib::init_db;
 use tokio::net::TcpListener;
 use tower_http::compression::CompressionLayer;
 use tower_http::services::ServeDir;
-use tower_http::trace::TraceLayer;
 
 use crate::constants::*;
-
 pub mod collect_with_capacity;
 pub mod constants;
 mod endpoints;
 mod error;
-
-// Appstate that needs to be shared between endpoints
-#[derive(Clone)]
-pub struct AppState {
-    postgres: Pool<Postgres>,
-    redis: SingleRedisPool,
-}
-
-// In case there is no administrator account, a default one will be made
-async fn create_default_account(pool: &Pool<Postgres>) {
-    let salt = SaltString::generate(&mut OsRng);
-    let password = Argon2::default()
-        .hash_password(
-            env::var("DEFAULT_ADMIN_PASSWORD")
-                .expect(BAD_DOT_ENV)
-                .as_bytes(),
-            &salt,
-        )
-        .unwrap();
-
-    let _ = sqlx::query!(
-        "INSERT INTO users (username, pass, token, tok_expire) VALUES ('Admin', $1, '', NOW())",
-        password.to_string(),
-    )
-    .execute(pool)
-    .await;
-}
+mod lib;
 
 // Program entry point
 #[allow(dead_code)]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    dotenvy::dotenv()?;
-
-    let pool = PgPoolOptions::new()
-        .max_connections(
-            (env::var("MAX_DB_POOL_CONNECTIONS").expect(BAD_DOT_ENV))
-                .parse()
-                .unwrap(),
-        )
-        .connect(&env::var("DATABASE_URL").expect(BAD_DOT_ENV))
-        .await?;
-
-    create_default_account(&pool).await;
-
-    let client = redis::Client::open(env::var("REDIS_ADDRESS").expect(BAD_DOT_ENV).as_str())
-        .expect("Error while testing the connection");
-
-    let state = AppState {
-        postgres: pool,
-        redis: RedisPool::from(client),
-    };
+    let state = init_db().await;
 
     // Endpoints strictly for admins
     let admin_auth = Router::new()

@@ -8,7 +8,7 @@ use validator::Validate;
 
 use crate::endpoints::common::*;
 use crate::error::AppError;
-use crate::AppState;
+use crate::lib::AppState;
 
 pub async fn create_faculty_fe() -> Result<Html<String>, AppError> {
     let ctx = CreateFacultyTemplate {};

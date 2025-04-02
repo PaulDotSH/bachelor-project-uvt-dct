@@ -9,7 +9,7 @@ use chrono_tz::{Europe::Bucharest, Tz};
 use sailfish::TemplateOnce;
 use serde::{Deserialize, Serialize};
 
-use crate::{error::AppError, AppState, GLOBAL_TIMEZONE};
+use crate::{error::AppError, lib::AppState, GLOBAL_TIMEZONE};
 
 #[derive(sailfish_minify::TemplateOnce)]
 #[templ(path = "open_close_date.stpl")]
