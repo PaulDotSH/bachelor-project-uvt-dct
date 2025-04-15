@@ -13,6 +13,7 @@ axum = { version = "0.7.5", features = ["multipart", "macros"] }
 axum-macros = "0.4.1"
 chrono = { version = "0.4.38", features = ["serde"] }
 dotenvy = "0.15.7"
+futures-util = "0.3.31"
 lazy_static = "1.4.0"
 rand = "0.8.5"
 sailfish = "0.8.3"

@@ -4,8 +4,7 @@ use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::{query_as, Pool, Postgres};
 
-use crate::error::AppError;
-use crate::lib::AppState;
+use crate::{error::AppError, lib::AppState};
 
 // Helper function to export user choices into a Vec<UserChoice>
 async fn export_choices(pool: &Pool<Postgres>) -> Result<Vec<UserChoices>, sqlx::Error> {

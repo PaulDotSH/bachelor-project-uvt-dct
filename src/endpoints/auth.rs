@@ -10,10 +10,9 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::query_scalar;
 
-use crate::constants::*;
+use crate::{constants::*, lib::AppState};
 use crate::endpoints::common::generate_token;
 use crate::error::AppError;
-use crate::lib::AppState;
 
 // Serve the static files
 pub async fn admin_login_fe() -> Html<&'static str> {

@@ -1,6 +1,6 @@
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 
-mod db;
+mod db;  // Use the local db module
 
 #[tokio::test]
 async fn test_account_creation() {

@@ -7,6 +7,12 @@ use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 use std::env;
 
+// Make modules publicly available
+#[path = "error.rs"]
+pub mod error;
+#[path = "collect_with_capacity.rs"]
+pub mod collect_with_capacity;
+
 // Appstate that needs to be shared between endpoints
 #[derive(Clone)]
 pub struct AppState {
