@@ -1,14 +1,13 @@
 use anyhow::anyhow;
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use axum::body::Body;
-use axum::extract::State;
-use axum::http::{header, HeaderValue, Request, StatusCode};
+use axum::extract::{Form, State};
+use axum::http::{header, HeaderMap, HeaderValue, Request, StatusCode};
 use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Redirect, Response};
-use axum::Form;
-use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::query_scalar;
+use time::{PrimitiveDateTime, OffsetDateTime, Duration};
 
 use crate::{constants::*, lib::AppState};
 use crate::endpoints::common::generate_token;
@@ -26,14 +25,14 @@ pub async fn student_login_fe() -> Html<&'static str> {
 #[derive(sqlx::FromRow, Debug)]
 struct User {
     username: String,
-    tok_expire: chrono::NaiveDateTime,
+    tok_expire: PrimitiveDateTime,
 }
 
 #[derive(sqlx::FromRow, Debug)]
 struct Student {
     nr_mat: String,
     email: String,
-    tok_expire: chrono::NaiveDateTime,
+    tok_expire: PrimitiveDateTime,
     faculty: i32,
 }
 
@@ -74,7 +73,10 @@ pub async fn permissive_middleware(
                 return next.run(request).await;
             };
 
-            if user.tok_expire < Utc::now().naive_utc() {
+            if user.tok_expire < PrimitiveDateTime::new(
+                OffsetDateTime::now_utc().date(),
+                OffsetDateTime::now_utc().time()
+            ) {
                 return next.run(request).await;
             }
 
@@ -95,7 +97,10 @@ pub async fn permissive_middleware(
                 return StatusCode::UNAUTHORIZED.into_response();
             };
 
-            if student.tok_expire < Utc::now().naive_utc() {
+            if student.tok_expire < PrimitiveDateTime::new(
+                OffsetDateTime::now_utc().date(),
+                OffsetDateTime::now_utc().time()
+            ) {
                 return next.run(request).await;
             }
 
@@ -147,7 +152,10 @@ pub async fn student_middleware(
                 return StatusCode::UNAUTHORIZED.into_response();
             };
 
-            if student.tok_expire < Utc::now().naive_utc() {
+            if student.tok_expire < PrimitiveDateTime::new(
+                OffsetDateTime::now_utc().date(),
+                OffsetDateTime::now_utc().time()
+            ) {
                 return next.run(request).await;
             }
 
@@ -203,7 +211,10 @@ pub async fn auth_middleware(
                 return (StatusCode::INTERNAL_SERVER_ERROR, INVALID_TOKEN).into_response();
             };
 
-            if user.tok_expire < Utc::now().naive_utc() {
+            if user.tok_expire < PrimitiveDateTime::new(
+                OffsetDateTime::now_utc().date(),
+                OffsetDateTime::now_utc().time()
+            ) {
                 return StatusCode::UNAUTHORIZED.into_response();
             }
 
@@ -264,7 +275,10 @@ pub async fn admin_login_handler(
     sqlx::query!(
         "UPDATE users SET token = $1, tok_expire = $2 WHERE username = $3",
         token,
-        (Utc::now() + TOKEN_EXPIRE_TIME).naive_utc(),
+        PrimitiveDateTime::new(
+            OffsetDateTime::now_utc().date(),
+            OffsetDateTime::now_utc().time()
+        ) + Duration::days(1),
         payload.username
     )
     .execute(&state.postgres)
@@ -307,7 +321,10 @@ pub async fn student_login_handler(
     sqlx::query!(
         "UPDATE students SET token = $1, tok_expire = $2 WHERE nr_mat = $3",
         token,
-        (Utc::now() + TOKEN_EXPIRE_TIME).naive_utc(),
+        PrimitiveDateTime::new(
+            OffsetDateTime::now_utc().date(),
+            OffsetDateTime::now_utc().time()
+        ) + Duration::days(1),
         payload.nr_mat
     )
     .execute(&state.postgres)

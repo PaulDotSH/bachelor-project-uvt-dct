@@ -1,6 +1,6 @@
 use axum::extract::State;
 use axum::response::Redirect;
-use chrono::NaiveDateTime;
+use time::PrimitiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::{query_as, Pool, Postgres};
 
@@ -38,8 +38,8 @@ struct UserChoices {
     first_choice_name: String,
     second_choice: i32,
     second_choice_name: String,
-    created: NaiveDateTime,
-    updated: Option<NaiveDateTime>,
+    created: PrimitiveDateTime,
+    updated: Option<PrimitiveDateTime>,
 }
 
 // Wrapper around export_choices to serialize into csv

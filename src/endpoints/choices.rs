@@ -3,7 +3,7 @@ use axum::extract::State;
 use axum::http::HeaderMap;
 use axum::response::{Html, Redirect};
 use axum::Form;
-use chrono::{FixedOffset, NaiveDateTime, Utc};
+use time::{OffsetDateTime, PrimitiveDateTime};
 use sailfish::TemplateOnce;
 use serde::{Deserialize, Serialize};
 use sqlx::{query, query_as, query_scalar, Pool, Postgres};
@@ -20,8 +20,8 @@ use super::open_close_date::StartEndDate;
 struct StudentChoice {
     first_choice: i32,
     second_choice: i32,
-    created: NaiveDateTime,
-    updated: Option<NaiveDateTime>,
+    created: PrimitiveDateTime,
+    updated: Option<PrimitiveDateTime>,
 }
 
 #[derive(sqlx::FromRow, Debug, Deserialize, Serialize, Clone)]
@@ -41,10 +41,10 @@ struct PickChoiceTemplate<'a> {
 
 // Function to check if the students should be able to pick their preferred classes
 async fn check_choices_open(pool: &Pool<Postgres>) -> Result<(), AppError> {
-    let now = Utc::now();
+    let now = OffsetDateTime::now_utc();
 
-    let db_timezone = FixedOffset::east_opt(GLOBAL_TIMEZONE).expect("Wrong timezone in settings");
-    let now_db_time = now.with_timezone(&db_timezone);
+    let db_timezone = time::UtcOffset::from_hms(3, 0, 0).unwrap(); // GLOBAL_TIMEZONE = 3
+    let now_db_time = now.to_offset(db_timezone);
 
     let record = sqlx::query_as!(
         StartEndDate,

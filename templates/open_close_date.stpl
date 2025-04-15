@@ -12,14 +12,14 @@
         <div class="centered-input">
             <div class="input-wrapper">
                 <label for="start_date">Start Date:</label>
-                <input type="datetime-local" id="start_date" name="start_date" required value="<%- dd.start_date.format("%Y-%m-%dT%H:%M").to_string() %>">
+                <input type="datetime-local" id="start_date" name="start_date" required value="<%- dd.start_date.date().year() %>-<%- format!("{:02}", dd.start_date.date().month() as u8) %>-<%- format!("{:02}", dd.start_date.date().day()) %>T<%- format!("{:02}", dd.start_date.time().hour()) %>:<%- format!("{:02}", dd.start_date.time().minute()) %>">
             </div>
         </div>
 
         <div class="centered-input">
             <div class="input-wrapper">
                 <label for="end_date">End Date:</label>
-                <input type="datetime-local" id="end_date" name="end_date" required value="<%- dd.end_date.format("%Y-%m-%dT%H:%M").to_string() %>">
+                <input type="datetime-local" id="end_date" name="end_date" required value="<%- dd.end_date.date().year() %>-<%- format!("{:02}", dd.end_date.date().month() as u8) %>-<%- format!("{:02}", dd.end_date.date().day()) %>T<%- format!("{:02}", dd.end_date.time().hour()) %>:<%- format!("{:02}", dd.end_date.time().minute()) %>">
             </div>
         </div>
 

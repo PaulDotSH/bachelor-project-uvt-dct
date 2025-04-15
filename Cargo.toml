@@ -18,7 +18,8 @@ lazy_static = "1.4.0"
 rand = "0.8.5"
 sailfish = "0.8.3"
 serde = { version = "1.0.203", features = ["derive"] }
-sqlx = { version = "0.7.4", features = ["sqlx-postgres", "runtime-tokio", "uuid", "time", "postgres", "chrono"] }
+sqlx = { version = "0.8.4", features = ["sqlx-postgres", "runtime-tokio", "uuid", "time", "postgres", "chrono"] }
+time = { version = "0.3", features = ["serde", "macros", "formatting"] }
 tokio = { version = "1.38.0", features = ["full"] }
 tower-http = { version = "0.5.2", features = ["uuid", "tokio", "fs", "trace", "compression-gzip"] }
 tracing = "0.1.40"
