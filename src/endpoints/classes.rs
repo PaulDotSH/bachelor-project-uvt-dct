@@ -1,7 +1,7 @@
 use axum::extract::{Path, Query, State};
 use axum::http::HeaderMap;
 use axum::response::{Html, Redirect};
-use sailfish::TemplateOnce;
+use sailfish::TemplateSimple;
 use serde::{Deserialize, Serialize};
 use sqlx::{query, query_as, query_scalar};
 use validator::Validate;
@@ -26,8 +26,8 @@ pub struct NewClass {
     prof: String,
 }
 
-#[derive(sailfish_minify::TemplateOnce)]
-#[templ(path = "./classes/create.stpl")]
+#[derive(sailfish_minify::TemplateSimple)]
+#[template(path = "./classes/create.stpl")]
 struct CreateClassTemplate {
     faculties: Vec<Faculty>,
 }
@@ -73,8 +73,8 @@ pub async fn create_class(
     ))
 }
 
-#[derive(sailfish_minify::TemplateOnce)]
-#[templ(path = "./classes/view.stpl")]
+#[derive(sailfish_minify::TemplateSimple)]
+#[template(path = "./classes/view.stpl")]
 struct ViewClassTemplate {
     class: Class,
     files: Vec<ClassFile>,
@@ -183,8 +183,8 @@ pub async fn update_class(
     Ok(Redirect::to(CLASSES_ENDPOINT))
 }
 
-#[derive(sailfish_minify::TemplateOnce)]
-#[templ(path = "classes/edit.stpl")]
+#[derive(sailfish_minify::TemplateSimple)]
+#[template(path = "classes/edit.stpl")]
 struct EditClassTemplate {
     class: Class,
     faculties: Vec<Faculty>,
@@ -246,8 +246,8 @@ pub async fn update_class_fe(
     Ok(Html::from(body))
 }
 
-#[derive(sailfish_minify::TemplateOnce)]
-#[templ(path = "./classes/filter.stpl")]
+#[derive(sailfish_minify::TemplateSimple)]
+#[template(path = "./classes/filter.stpl")]
 struct FilterClassesTemplate {
     classes: Vec<Class>,
     filter: Filter,

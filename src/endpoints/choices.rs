@@ -4,7 +4,7 @@ use axum::http::HeaderMap;
 use axum::response::{Html, Redirect};
 use axum::Form;
 use time::{OffsetDateTime, PrimitiveDateTime};
-use sailfish::TemplateOnce;
+use sailfish::TemplateSimple;
 use serde::{Deserialize, Serialize};
 use sqlx::{query, query_as, query_scalar, Pool, Postgres};
 use validator::Validate;
@@ -31,8 +31,8 @@ struct TinyClass {
     pub semester: Semester,
 }
 
-#[derive(sailfish_minify::TemplateOnce)]
-#[templ(path = "choice_pick.stpl")]
+#[derive(sailfish_minify::TemplateSimple)]
+#[template(path = "choice_pick.stpl")]
 struct PickChoiceTemplate<'a> {
     fs_classes: &'a [TinyClass],
     ss_classes: &'a [TinyClass],

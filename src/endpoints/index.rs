@@ -2,10 +2,10 @@ use crate::endpoints::common::*;
 use crate::error::AppError;
 use axum::http::HeaderMap;
 use axum::response::Html;
-use sailfish::TemplateOnce;
+use sailfish::TemplateSimple;
 
-#[derive(sailfish_minify::TemplateOnce)]
-#[templ(path = "index.stpl")]
+#[derive(sailfish_minify::TemplateSimple)]
+#[template(path = "index.stpl")]
 struct IndexPageTemplate {
     auth_type: AuthUserType,
 }

@@ -3,12 +3,12 @@ use axum::extract::State;
 use axum::response::{Html, Redirect};
 use axum::Form;
 use time::{OffsetDateTime, Duration, macros::format_description};
-use sailfish::TemplateOnce;
+use sailfish::TemplateSimple;
 use serde::{Deserialize, Serialize};
 use crate::{constants::GMT, error::AppError, lib::AppState};
 
-#[derive(sailfish_minify::TemplateOnce)]
-#[templ(path = "open_close_date.stpl")]
+#[derive(sailfish_minify::TemplateSimple)]
+#[template(path = "open_close_date.stpl")]
 struct OpenCloseDateTemplate {
     date_data: Option<StartEndDateTz>,
 }

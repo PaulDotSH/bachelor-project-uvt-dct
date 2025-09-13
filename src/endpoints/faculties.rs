@@ -1,7 +1,7 @@
 use axum::extract::{Path, State};
 use axum::http::HeaderMap;
 use axum::response::{Html, Redirect};
-use sailfish::TemplateOnce;
+use sailfish::TemplateSimple;
 use serde::Deserialize;
 use sqlx::{query, query_as};
 use validator::Validate;
@@ -61,14 +61,14 @@ pub struct UpdatedFaculty {
     name: String,
 }
 
-#[derive(sailfish_minify::TemplateOnce)]
-#[templ(path = "./faculties/edit.stpl")]
+#[derive(sailfish_minify::TemplateSimple)]
+#[template(path = "./faculties/edit.stpl")]
 struct EditFacultyTemplate {
     faculty: Faculty,
 }
 
-#[derive(sailfish_minify::TemplateOnce)]
-#[templ(path = "./faculties/create.stpl")]
+#[derive(sailfish_minify::TemplateSimple)]
+#[template(path = "./faculties/create.stpl")]
 struct CreateFacultyTemplate {}
 
 pub async fn update_faculty_fe(
@@ -109,8 +109,8 @@ pub async fn update_faculty(
     Ok(Redirect::to("/faculties"))
 }
 
-#[derive(sailfish_minify::TemplateOnce)]
-#[templ(path = "./faculties/faculties.stpl")]
+#[derive(sailfish_minify::TemplateSimple)]
+#[template(path = "./faculties/faculties.stpl")]
 struct ViewFacultiesTemplate {
     faculties: Vec<Faculty>,
     is_admin: bool,
